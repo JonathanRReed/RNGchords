@@ -86,6 +86,11 @@ const CHORD_COMPLEXITY_COPY: Record<ChordComplexity, { label: string; detail: st
   },
 }
 
+const PLAYBACK_INSTRUMENT_OPTIONS = Object.keys(PLAYBACK_INSTRUMENT_COPY) as PlaybackInstrument[]
+const INSTRUMENT_FOCUS_OPTIONS = Object.keys(INSTRUMENT_FOCUS_COPY) as InstrumentFocus[]
+const CHORD_COMPLEXITY_OPTIONS = Object.keys(CHORD_COMPLEXITY_COPY) as ChordComplexity[]
+const SURPRISE_TEMPO_OPTIONS = [68, 74, 82, 88, 96, 104, 112, 120, 128, 136] as const
+
 const INITIAL_PRESET = PLAYGROUND_PRESETS[0]
 const INITIAL_COMPLEXITY = INITIAL_PRESET?.complexity ?? 'balanced'
 const INITIAL_GUIDED_FACES = INITIAL_PRESET?.mode === 'guided' && INITIAL_PRESET.guidedFaces
@@ -172,6 +177,10 @@ function formatProgressionSource(source: string): string {
   }
 
   return labels[source] ?? source.replace(/-/g, ' ')
+}
+
+function pickRandom<T>(items: readonly T[]): T {
+  return items[Math.floor(Math.random() * items.length)] as T
 }
 
 type StageDie = {
@@ -338,18 +347,33 @@ export default function RngChordsApp() {
     setGuidedFaces((current) => (current.length <= 1 ? current : current.slice(0, -1)))
   }, [])
 
-  const loadPreset = useCallback((preset: PlaygroundPreset) => {
+  const loadPreset = useCallback((preset: PlaygroundPreset, overrides?: {
+    complexity?: ChordComplexity
+    tempo?: number
+    instrumentFocus?: InstrumentFocus
+    playbackInstrument?: PlaybackInstrument
+    status?: string
+  }) => {
+    const nextComplexity = overrides?.complexity ?? preset.complexity
+    const nextTempo = overrides?.tempo ?? preset.tempo
+    const nextInstrumentFocus = overrides?.instrumentFocus ?? preset.instrumentFocus
+    const nextStatus = overrides?.status ?? preset.status
+
     setActivePresetId(preset.id)
-    setComplexity(preset.complexity)
-    setTempo(preset.tempo)
-    setInstrumentFocus(preset.instrumentFocus)
+    setComplexity(nextComplexity)
+    setTempo(nextTempo)
+    setInstrumentFocus(nextInstrumentFocus)
+
+    if (overrides?.playbackInstrument) {
+      setPlaybackInstrument(overrides.playbackInstrument)
+    }
 
     if (preset.mode === 'guided' && preset.guidedFaces) {
       const faces = [...preset.guidedFaces]
-      const next = createGuidedRoll({ faceCounts: faces }, preset.complexity)
+      const next = createGuidedRoll({ faceCounts: faces }, nextComplexity)
 
       setGuidedFaces(faces)
-      commitProgression(next.progression, 'guided', preset.status)
+      commitProgression(next.progression, 'guided', nextStatus)
       return
     }
 
@@ -358,11 +382,11 @@ export default function RngChordsApp() {
         chordCount: preset.advancedConfig.chordCount,
         faceCounts: { ...preset.advancedConfig.faceCounts },
       }
-      const next = createAdvancedRoll(nextConfig, preset.complexity)
+      const next = createAdvancedRoll(nextConfig, nextComplexity)
 
       setAdvancedConfig(nextConfig)
       setAdvancedRoll(next)
-      commitProgression(next.progression, 'advanced', preset.status)
+      commitProgression(next.progression, 'advanced', nextStatus)
     }
   }, [commitProgression])
 
@@ -416,10 +440,20 @@ export default function RngChordsApp() {
   }, [loadPreset, mode, rollAdvanced, rollGuided])
 
   const surpriseMe = useCallback(() => {
-    const randomPreset = PLAYGROUND_PRESETS[Math.floor(Math.random() * PLAYGROUND_PRESETS.length)]
+    const randomPreset = pickRandom(PLAYGROUND_PRESETS)
+    const randomInstrument = pickRandom(PLAYBACK_INSTRUMENT_OPTIONS)
+    const randomFocus = pickRandom(INSTRUMENT_FOCUS_OPTIONS)
+    const randomComplexity = pickRandom(CHORD_COMPLEXITY_OPTIONS)
+    const randomTempo = pickRandom(SURPRISE_TEMPO_OPTIONS)
 
     if (randomPreset) {
-      loadPreset(randomPreset)
+      loadPreset(randomPreset, {
+        complexity: randomComplexity,
+        tempo: randomTempo,
+        instrumentFocus: randomFocus,
+        playbackInstrument: randomInstrument,
+        status: `Surprise: ${randomPreset.label} at ${randomTempo} BPM with ${PLAYBACK_INSTRUMENT_COPY[randomInstrument].label} and ${INSTRUMENT_FOCUS_COPY[randomFocus].label.toLowerCase()}.`,
+      })
     }
   }, [loadPreset])
 
