@@ -1,6 +1,20 @@
 ---
 import RngChordsApp from '../components/RngChordsApp'
 import '../styles/global.css'
+
+const pageTitle = 'RNG Chords | Random chord ideas for guitar, piano, and songwriting'
+const pageDescription = 'RNG Chords is a playful browser-based chord generator for guitarists, pianists, songwriters, and producers. Roll progressions, hear them instantly, keep the best chords, and export MIDI when an idea lands.'
+const pageUrl = Astro.site ? new URL('/', Astro.site).toString() : undefined
+const socialImage = Astro.site ? new URL('/social-card.svg', Astro.site).toString() : '/social-card.svg'
+const webAppSchema = JSON.stringify({
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: 'RNG Chords',
+  applicationCategory: 'MusicApplication',
+  operatingSystem: 'Web',
+  description: pageDescription,
+  ...(pageUrl ? { url: pageUrl } : {}),
+})
 ---
 
 <html lang="en">
@@ -10,17 +24,29 @@ import '../styles/global.css'
 		<link rel="icon" href="/favicon.ico" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="generator" content={Astro.generator} />
+		<meta name="theme-color" content="#0b0706" />
 		<meta
 			name="description"
-			content="RNG Chords is a tactile skeuomorphic chord generator with configurable dice, manual chord entry, browser playback, and MIDI export."
+			content={pageDescription}
 		/>
+		<meta property="og:type" content="website" />
+		<meta property="og:title" content={pageTitle} />
+		<meta property="og:description" content={pageDescription} />
+		<meta property="og:image" content={socialImage} />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={pageTitle} />
+		<meta name="twitter:description" content={pageDescription} />
+		<meta name="twitter:image" content={socialImage} />
+		{pageUrl ? <link rel="canonical" href={pageUrl} /> : null}
+		{pageUrl ? <meta property="og:url" content={pageUrl} /> : null}
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
 		<link
 			href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
 			rel="stylesheet"
 		/>
-		<title>RNG Chords</title>
+		<title>{pageTitle}</title>
+		<script is:inline type="application/ld+json" set:html={webAppSchema} />
 	</head>
 	<body>
 		<RngChordsApp client:load />

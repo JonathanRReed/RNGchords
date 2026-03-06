@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from 'motion/react'
-import { startTransition, useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
+import { startTransition, useCallback, useEffect, useMemo, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { createMidiBlob, downloadMidiBlob } from '../lib/audio/midi'
 import { PLAYBACK_INSTRUMENT_COPY, playProgression, preloadPlayback, previewChord, stopPlayback } from '../lib/audio/playback'
 import { getDiceMotionPlan } from '../lib/dice/motion'
@@ -59,16 +59,16 @@ type Mode = 'guided' | 'advanced' | 'manual'
 
 const MODE_COPY: Record<Mode, { title: string; detail: string }> = {
   guided: {
-    title: 'Quick ideas',
-    detail: 'Roll a few chords and see where they want to go.',
+    title: 'Easy rolls',
+    detail: 'Generate a playable progression fast and hear it back right away.',
   },
   advanced: {
-    title: 'Wild ideas',
-    detail: 'More dice, more curveballs, still easy to mess with.',
+    title: 'Wild rolls',
+    detail: 'Use more parameters for stranger harmony, rhythm, and motion.',
   },
   manual: {
-    title: 'Build it yourself',
-    detail: 'Type chords or stack them by hand when you already hear something.',
+    title: 'Manual builder',
+    detail: 'Type chord names or stack chords by hand when you already hear something.',
   },
 }
 
@@ -90,8 +90,12 @@ const CHORD_COMPLEXITY_COPY: Record<ChordComplexity, { label: string; detail: st
 const PLAYBACK_INSTRUMENT_OPTIONS = Object.keys(PLAYBACK_INSTRUMENT_COPY) as PlaybackInstrument[]
 const INSTRUMENT_FOCUS_OPTIONS = Object.keys(INSTRUMENT_FOCUS_COPY) as InstrumentFocus[]
 const CHORD_COMPLEXITY_OPTIONS = Object.keys(CHORD_COMPLEXITY_COPY) as ChordComplexity[]
+const MODE_OPTIONS = Object.keys(MODE_COPY) as Mode[]
 const SURPRISE_TEMPO_OPTIONS = [68, 74, 82, 88, 96, 104, 112, 120, 128, 136] as const
 const SECTION_IDS = ['A', 'B', 'C'] as const
+const DEFAULT_MANUAL_INPUT = 'Cmaj9, Am11, D7b9, G13'
+const DEFAULT_STATUS = 'Roll some chords, hear them back, and keep the bits you like.'
+const CREATIVE_SESSION_STORAGE_KEY = 'rng-chords-creative-session'
 
 const INITIAL_PRESET = PLAYGROUND_PRESETS[0]
 const INITIAL_COMPLEXITY = INITIAL_PRESET?.complexity ?? 'balanced'
@@ -119,6 +123,26 @@ const INITIAL_BUILDER: BuilderState = {
   inversion: 0,
   rhythmBeats: 1,
 }
+const QUICK_START_STEPS = [
+  'Choose the instrument focus that matches what you play.',
+  'Pick Easy, Color, or Spicy chord complexity.',
+  'Roll a first idea, then Preview, Keep, and Reroll until it feels right.',
+] as const
+const HOW_IT_WORKS_STEPS = [
+  'Roll a progression from presets, guided dice, or advanced dice.',
+  'Hear each chord back, pin the good ones, and reroll the rest.',
+  'Loop the full idea or export MIDI when you want to build from it elsewhere.',
+] as const
+const LAUNCH_USE_CASES = [
+  'Songwriters who want a verse or chorus seed in under a minute.',
+  'Guitar and piano players who want fresh voicings without opening a DAW.',
+  'Producers who want to sketch harmony fast and export MIDI when it lands.',
+] as const
+const OUTCOME_EXAMPLES = [
+  'Indie-pop lift with bright major color and quick movement.',
+  'Neo-soul drift with rich extensions and smoother voice leading.',
+  'Cinematic tension with darker harmony and a longer release.',
+] as const
 
 function totalBeats(chords: ChordDescriptor[]): number {
   return chords.reduce((sum, chord) => sum + chord.rhythmBeats, 0)
@@ -199,6 +223,39 @@ type SectionSnapshot = {
   progression: ProgressionResult
   rhythmFeel: RhythmFeel
   tempo: number
+}
+
+type CreativeSessionState = {
+  activePresetId: string
+  activeSection: SectionId
+  advancedConfig: AdvancedDiceConfig
+  advancedRoll: AdvancedRollResult
+  builder: BuilderState
+  complexity: ChordComplexity
+  guidedFaces: number[]
+  instrumentFocus: InstrumentFocus
+  keptChordSlots: number[]
+  loopEnabled: boolean
+  manualInput: string
+  mode: Mode
+  playbackInstrument: PlaybackInstrument
+  progression: ProgressionResult
+  rhythmFeel: RhythmFeel
+  sections: Record<SectionId, SectionSnapshot | null>
+  showTheory: boolean
+  tempo: number
+}
+
+function createEmptySections(): Record<SectionId, SectionSnapshot | null> {
+  return { A: null, B: null, C: null }
+}
+
+function createModeTabId(mode: Mode): string {
+  return `mode-tab-${mode}`
+}
+
+function createModePanelId(mode: Mode): string {
+  return `mode-panel-${mode}`
 }
 
 function createDelightMessage(progression: ProgressionResult): string | null {
@@ -310,7 +367,7 @@ export default function RngChordsApp() {
   const [advancedRoll, setAdvancedRoll] = useState<AdvancedRollResult>(() => INITIAL_ADVANCED_ROLL)
   const [progression, setProgression] = useState<ProgressionResult>(() => INITIAL_GUIDED.progression)
   const [builder, setBuilder] = useState<BuilderState>(() => INITIAL_BUILDER)
-  const [manualInput, setManualInput] = useState('Cmaj9, Am11, D7b9, G13')
+  const [manualInput, setManualInput] = useState(DEFAULT_MANUAL_INPUT)
   const [manualIssues, setManualIssues] = useState<string[]>([])
   const [complexity, setComplexity] = useState<ChordComplexity>(INITIAL_COMPLEXITY)
   const [tempo, setTempo] = useState(INITIAL_PRESET?.tempo ?? 92)
@@ -325,12 +382,13 @@ export default function RngChordsApp() {
   const [showTheory, setShowTheory] = useState(false)
   const [keptChordSlots, setKeptChordSlots] = useState<number[]>([])
   const [activeSection, setActiveSection] = useState<SectionId>('A')
-  const [sections, setSections] = useState<Record<SectionId, SectionSnapshot | null>>({ A: null, B: null, C: null })
+  const [sections, setSections] = useState<Record<SectionId, SectionSnapshot | null>>(() => createEmptySections())
   const [delightMessage, setDelightMessage] = useState<string | null>(null)
   const [diceImpulse, setDiceImpulse] = useState(1)
   const [diceStyleSettings, setDiceStyleSettings] = useState<DiceStyleSettings>(DEFAULT_DICE_STYLE_SETTINGS)
-  const [status, setStatus] = useState('Roll some chords, hear them back, and keep the bits you like.')
+  const [status, setStatus] = useState(DEFAULT_STATUS)
   const [midiBusy, setMidiBusy] = useState(false)
+  const [sessionReady, setSessionReady] = useState(false)
 
   const displayProgression = useMemo(() => applyRhythmFeel(progression, rhythmFeel), [progression, rhythmFeel])
   const highlightedChordIndex = activeChordIndex ?? jamChordIndex
@@ -438,6 +496,31 @@ export default function RngChordsApp() {
       commitProgression(next.progression, 'advanced', nextStatus)
     }
   }, [commitProgression])
+
+  const handleModeTabKeyDown = useCallback((event: ReactKeyboardEvent<HTMLButtonElement>, currentMode: Mode) => {
+    const currentIndex = MODE_OPTIONS.indexOf(currentMode)
+
+    if (event.key === 'Home') {
+      event.preventDefault()
+      setMode(MODE_OPTIONS[0] ?? 'guided')
+      return
+    }
+
+    if (event.key === 'End') {
+      event.preventDefault()
+      setMode(MODE_OPTIONS.at(-1) ?? 'manual')
+      return
+    }
+
+    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') {
+      return
+    }
+
+    event.preventDefault()
+    const direction = event.key === 'ArrowRight' ? 1 : -1
+    const nextIndex = (currentIndex + direction + MODE_OPTIONS.length) % MODE_OPTIONS.length
+    setMode(MODE_OPTIONS[nextIndex] ?? currentMode)
+  }, [])
 
   const rollGuided = useCallback(() => {
     const next = createGuidedRoll({ faceCounts: guidedFaces }, complexity)
@@ -793,10 +876,10 @@ export default function RngChordsApp() {
   }, [displayProgression, tempo])
 
   useEffect(() => {
-    const handleKeydown = (event: KeyboardEvent) => {
+    const handleKeydown = (event: globalThis.KeyboardEvent) => {
       const target = event.target as HTMLElement | null
 
-      if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) {
+      if (target && ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON'].includes(target.tagName)) {
         return
       }
 
@@ -852,6 +935,60 @@ export default function RngChordsApp() {
     }
 
     try {
+      const saved = window.localStorage.getItem(CREATIVE_SESSION_STORAGE_KEY)
+
+      if (!saved) {
+        return
+      }
+
+      const session = JSON.parse(saved) as Partial<CreativeSessionState>
+
+      if (!session.progression || !Array.isArray(session.progression.chords)) {
+        return
+      }
+
+      const nextSections = createEmptySections()
+
+      SECTION_IDS.forEach((sectionId) => {
+        nextSections[sectionId] = session.sections?.[sectionId] ?? null
+      })
+
+      setActivePresetId(typeof session.activePresetId === 'string' ? session.activePresetId : INITIAL_PRESET?.id ?? 'campfire-glow')
+      setActiveSection(SECTION_IDS.includes(session.activeSection as SectionId) ? session.activeSection as SectionId : 'A')
+      setAdvancedConfig(session.advancedConfig ?? {
+        chordCount: 4,
+        faceCounts: { ...DEFAULT_ADVANCED_FACES },
+      })
+      setAdvancedRoll(session.advancedRoll ?? INITIAL_ADVANCED_ROLL)
+      setBuilder(session.builder ?? INITIAL_BUILDER)
+      setComplexity(session.complexity ?? INITIAL_COMPLEXITY)
+      setGuidedFaces(Array.isArray(session.guidedFaces) && session.guidedFaces.length > 0 ? session.guidedFaces : [...INITIAL_GUIDED_FACES])
+      setInstrumentFocus(session.instrumentFocus ?? INITIAL_PRESET?.instrumentFocus ?? 'both')
+      setKeptChordSlots(Array.isArray(session.keptChordSlots) ? session.keptChordSlots : [])
+      setLoopEnabled(Boolean(session.loopEnabled))
+      setManualInput(typeof session.manualInput === 'string' ? session.manualInput : DEFAULT_MANUAL_INPUT)
+      setMode(session.mode ?? 'guided')
+      setPlaybackInstrument(session.playbackInstrument ?? 'warm-piano')
+      setProgression(session.progression)
+      setRhythmFeel(session.rhythmFeel ?? 'straight')
+      setSections(nextSections)
+      setShowTheory(Boolean(session.showTheory))
+      setTempo(typeof session.tempo === 'number' ? session.tempo : INITIAL_PRESET?.tempo ?? 92)
+      setDelightMessage(createDelightMessage(session.progression))
+      setStatus('Restored your last idea.')
+    } catch (error) {
+      console.error('Creative session restore failed', error)
+    } finally {
+      setSessionReady(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return
+    }
+
+    try {
       const saved = window.localStorage.getItem(DICE_STYLE_STORAGE_KEY)
 
       if (saved) {
@@ -861,6 +998,59 @@ export default function RngChordsApp() {
       console.error('Dice style restore failed', error)
     }
   }, [])
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !sessionReady) {
+      return
+    }
+
+    try {
+      const session: CreativeSessionState = {
+        activePresetId,
+        activeSection,
+        advancedConfig,
+        advancedRoll,
+        builder,
+        complexity,
+        guidedFaces,
+        instrumentFocus,
+        keptChordSlots,
+        loopEnabled,
+        manualInput,
+        mode,
+        playbackInstrument,
+        progression,
+        rhythmFeel,
+        sections,
+        showTheory,
+        tempo,
+      }
+
+      window.localStorage.setItem(CREATIVE_SESSION_STORAGE_KEY, JSON.stringify(session))
+    } catch (error) {
+      console.error('Creative session save failed', error)
+    }
+  }, [
+    activePresetId,
+    activeSection,
+    advancedConfig,
+    advancedRoll,
+    builder,
+    complexity,
+    guidedFaces,
+    instrumentFocus,
+    keptChordSlots,
+    loopEnabled,
+    manualInput,
+    mode,
+    playbackInstrument,
+    progression,
+    rhythmFeel,
+    sections,
+    sessionReady,
+    showTheory,
+    tempo,
+  ])
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -875,23 +1065,39 @@ export default function RngChordsApp() {
   }, [diceStyleSettings])
 
   return (
-    <div className="rng-app-shell">
-      <div className="rng-app-shell__glow" />
-      <section className="workstation-top panel-surface panel-surface--wide">
+    <>
+      <a className="skip-link" href="#main-content">Skip to the chord generator</a>
+      <div className="rng-app-shell">
+        <div className="rng-app-shell__glow" />
+        <section className="workstation-top panel-surface panel-surface--wide">
         <div className="workstation-topbar">
           <div className="workstation-brand">
             <span className="hero-strip__kicker">RNG Chords</span>
-            <h1>Chord idea sketchpad</h1>
-            <p>Roll a few chords, hear them back, and keep whatever feels fun.</p>
+            <h1>Random chord ideas for guitar, piano, and songwriting.</h1>
+            <p>Roll chord progressions, hear them instantly, keep the parts you love, and export MIDI when an idea sticks.</p>
+            <div className="hero-actions">
+              <button type="button" className="action-button" onClick={generateRandomChords}>
+                Roll First Idea
+              </button>
+              <button type="button" className="pill-button pill-button--bright" onClick={surpriseMe}>
+                Surprise Me
+              </button>
+            </div>
           </div>
 
-          <div className="mode-rail workstation-modes" role="tablist" aria-label="RNG Chords modes">
-            {(Object.keys(MODE_COPY) as Mode[]).map((entry) => (
+          <div className="mode-rail workstation-modes" role="tablist" aria-label="Idea generation modes">
+            {MODE_OPTIONS.map((entry) => (
               <button
                 key={entry}
                 type="button"
                 className={entry === mode ? 'mode-pill mode-pill--active' : 'mode-pill'}
                 onClick={() => setMode(entry)}
+                onKeyDown={(event) => handleModeTabKeyDown(event, entry)}
+                id={createModeTabId(entry)}
+                role="tab"
+                aria-selected={entry === mode}
+                aria-controls={createModePanelId(entry)}
+                tabIndex={entry === mode ? 0 : -1}
               >
                 <span>{MODE_COPY[entry].title}</span>
                 <small>{MODE_COPY[entry].detail}</small>
@@ -920,9 +1126,59 @@ export default function RngChordsApp() {
             </div>
           </div>
         </div>
-      </section>
+        </section>
 
-      <main className="tabletop-grid tabletop-grid--workstation">
+        <section className="launch-guide panel-surface panel-surface--wide" aria-labelledby="launch-guide-title">
+          <div className="panel-title">
+            <span className="panel-title__eyebrow">Start Here</span>
+            <h2 id="launch-guide-title">Go from blank page to a playable progression fast.</h2>
+            <p>Use the quick start path if you are new, then keep, reroll, and export when a happy accident shows up.</p>
+          </div>
+          <div className="launch-guide__grid">
+            <article className="launch-card">
+              <span className="launch-card__eyebrow">Quick Start</span>
+              <strong>Pick an instrument, choose a complexity, and roll your first progression.</strong>
+              <ol className="launch-card__list">
+                {QUICK_START_STEPS.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ol>
+              <div className="launch-card__actions">
+                <button type="button" className="action-button" onClick={generateRandomChords}>
+                  Roll First Idea
+                </button>
+              </div>
+            </article>
+
+            <article className="launch-card">
+              <span className="launch-card__eyebrow">How It Works</span>
+              <strong>Roll, refine, then play or export.</strong>
+              <ol className="launch-card__list launch-card__list--steps">
+                {HOW_IT_WORKS_STEPS.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ol>
+            </article>
+
+            <article className="launch-card">
+              <span className="launch-card__eyebrow">Try Vibes Like</span>
+              <strong>Find a direction fast, then steer it toward the mood you want.</strong>
+              <ul className="launch-card__list">
+                {OUTCOME_EXAMPLES.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+              <p className="launch-card__note">Also good for {LAUNCH_USE_CASES.join(' ')}</p>
+              <div className="launch-card__actions">
+                <button type="button" className="pill-button pill-button--bright" onClick={surpriseMe}>
+                  Surprise Me
+                </button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <main id="main-content" className="tabletop-grid tabletop-grid--workstation" tabIndex={-1}>
         <section className="control-bank control-bank--compact panel-surface">
           <div className="stack-block stack-block--dense">
             <div className="compact-panel-head">
@@ -938,6 +1194,7 @@ export default function RngChordsApp() {
                   type="button"
                   className={preset.id === activePreset?.id ? 'preset-card preset-card--active' : 'preset-card'}
                   onClick={() => loadPreset(preset)}
+                  aria-pressed={preset.id === activePreset?.id}
                 >
                   <span>{preset.label}</span>
                   <strong>{preset.strapline}</strong>
@@ -946,7 +1203,7 @@ export default function RngChordsApp() {
             </div>
 
             <label className="control-field">
-              <span>Play on</span>
+              <span>Instrument Focus</span>
               <select name="instrument-focus" value={instrumentFocus} onChange={(event) => setInstrumentFocus(event.target.value as InstrumentFocus)}>
                 {(Object.keys(INSTRUMENT_FOCUS_COPY) as InstrumentFocus[]).map((focus) => (
                   <option key={focus} value={focus}>
@@ -958,7 +1215,7 @@ export default function RngChordsApp() {
             </label>
 
             <label className="control-field">
-              <span>Spice</span>
+              <span>Chord Complexity</span>
               <select name="chord-complexity" value={complexity} onChange={(event) => applyComplexity(event.target.value as ChordComplexity)}>
                 {(Object.keys(CHORD_COMPLEXITY_COPY) as ChordComplexity[]).map((entry) => (
                   <option key={entry} value={entry}>
@@ -970,20 +1227,20 @@ export default function RngChordsApp() {
             </label>
 
             <div className="playground-callout compact-callout">
-              <span>Try this</span>
+              <span>Try This First</span>
               <p>{practicePrompt}</p>
             </div>
 
             <PanelTitle eyebrow="Mode" title={MODE_COPY[mode].title} detail={MODE_COPY[mode].detail} />
 
             {mode === 'guided' ? (
-              <div className="stack-block">
+              <div className="stack-block" id={createModePanelId('guided')} role="tabpanel" aria-labelledby={createModeTabId('guided')}>
                 <div className="row-split row-split--tight">
                   <button type="button" className="pill-button" onClick={addGuidedDie}>
-                    Add die
+                    Add Die
                   </button>
                   <button type="button" className="pill-button pill-button--muted" onClick={removeGuidedDie}>
-                    Remove die
+                    Remove Die
                   </button>
                 </div>
 
@@ -1003,13 +1260,13 @@ export default function RngChordsApp() {
                 </div>
 
                 <button type="button" className="action-button" onClick={rollGuided}>
-                  Roll ideas
+                  Roll This Setup
                 </button>
               </div>
             ) : null}
 
             {mode === 'advanced' ? (
-              <div className="stack-block">
+              <div className="stack-block" id={createModePanelId('advanced')} role="tabpanel" aria-labelledby={createModeTabId('advanced')}>
                 <div className="setting-grid">
                   <label className="control-field control-field--wide">
                     <span>Chord count</span>
@@ -1051,13 +1308,13 @@ export default function RngChordsApp() {
                   ))}
                 </div>
                 <button type="button" className="action-button" onClick={rollAdvanced}>
-                  Roll wilder ideas
+                  Roll This Setup
                 </button>
               </div>
             ) : null}
 
             {mode === 'manual' ? (
-              <div className="stack-block stack-block--manual">
+              <div className="stack-block stack-block--manual" id={createModePanelId('manual')} role="tabpanel" aria-labelledby={createModeTabId('manual')}>
                 <div className="setting-grid setting-grid--builder">
                   <label className="control-field">
                     <span>Root</span>
@@ -1162,10 +1419,10 @@ export default function RngChordsApp() {
 
                 <div className="row-split">
                   <button type="button" className="action-button action-button--secondary" onClick={() => appendBuilderChord(false)}>
-                    Add this chord
+                    Add This Chord
                   </button>
                   <button type="button" className="action-button" onClick={() => appendBuilderChord(true)}>
-                    Use this chord
+                    Replace with This Chord
                   </button>
                 </div>
 
@@ -1182,15 +1439,15 @@ export default function RngChordsApp() {
 
                 <div className="row-split">
                   <button type="button" className="pill-button" onClick={() => applyManualInput(false)}>
-                    Add typed chords
+                    Add Typed Chords
                   </button>
                   <button type="button" className="pill-button pill-button--bright" onClick={() => applyManualInput(true)}>
-                    Use typed chords
+                    Replace with Typed Chords
                   </button>
                 </div>
 
                 {manualIssues.length > 0 ? (
-                  <div className="issue-panel" role="status">
+                  <div className="issue-panel" role="status" aria-live="polite">
                     {manualIssues.map((issue) => (
                       <p key={issue}>{issue}</p>
                     ))}
@@ -1274,10 +1531,10 @@ export default function RngChordsApp() {
           </div>
           <div className="tray-toolbar">
             <button type="button" className="action-button" onClick={generateRandomChords}>
-              Roll ideas
+              Roll New Idea
             </button>
             <button type="button" className="pill-button pill-button--bright" onClick={surpriseMe}>
-              Surprise me
+              Surprise Me
             </button>
           </div>
           <div className="dice-tray" style={diceTrayStyle}>
@@ -1306,17 +1563,17 @@ export default function RngChordsApp() {
         <section className="results-bank panel-surface">
           <div className="compact-panel-head compact-panel-head--results">
             <span className="panel-title__eyebrow">Sound</span>
-            <h2>Current idea</h2>
-            <p>Pick a sound, set the tempo, and listen back.</p>
+            <h2>Playback &amp; edit</h2>
+            <p>Hear the idea, keep the best chords, and export it when it earns a spot in your sketchbook.</p>
           </div>
 
           <div className="idea-utility-bar">
             <div className="idea-memory">
               <div className="idea-memory__copy">
                 <span>Idea slots</span>
-                <strong>Save a version in A, B, or C, then click a filled slot to load it back.</strong>
+                <strong>Save versions in A, B, or C so you can compare takes without losing the one you liked.</strong>
               </div>
-              <div className="section-strip" role="tablist" aria-label="Idea slots">
+              <div className="section-strip" role="group" aria-label="Idea slots">
                 {SECTION_IDS.map((sectionId) => {
                   const filled = Boolean(sections[sectionId])
                   return (
@@ -1326,6 +1583,7 @@ export default function RngChordsApp() {
                       className={sectionId === activeSection ? 'chip-button chip-button--active section-chip' : 'chip-button section-chip'}
                       onClick={() => loadSection(sectionId)}
                       aria-label={filled ? `Load saved idea slot ${sectionId}` : `Idea slot ${sectionId} is empty`}
+                      aria-pressed={sectionId === activeSection}
                       title={filled ? `Load saved idea slot ${sectionId}` : `Idea slot ${sectionId} is empty`}
                     >
                       {sectionId}
@@ -1340,12 +1598,13 @@ export default function RngChordsApp() {
                 Save to {activeSection}
               </button>
               <button type="button" className="pill-button" onClick={rerollUnlockedChords} disabled={progression.chords.length === 0}>
-                Reroll unlocked
+                Reroll Unlocked
               </button>
               <button
                 type="button"
                 className={showTheory ? 'chip-button chip-button--active' : 'chip-button'}
                 onClick={() => setShowTheory((current) => !current)}
+                aria-pressed={showTheory}
               >
                 Theory {showTheory ? 'On' : 'Off'}
               </button>
@@ -1395,6 +1654,7 @@ export default function RngChordsApp() {
               type="button"
               className={loopEnabled ? 'chip-button chip-button--active' : 'chip-button'}
               onClick={() => setLoopEnabled((current) => !current)}
+              aria-pressed={loopEnabled}
             >
               Loop {loopEnabled ? 'On' : 'Off'}
             </button>
@@ -1408,11 +1668,11 @@ export default function RngChordsApp() {
               {midiBusy ? 'Exporting…' : 'Export MIDI'}
             </button>
             <button type="button" className="pill-button pill-button--muted" onClick={clearProgression}>
-              Clear idea
+              Clear Idea
             </button>
           </div>
 
-          <p className="jam-hint">Keys: ← → preview chords · Enter replay selected chord · Space play or stop</p>
+          <p id="jam-shortcuts" className="jam-hint">Keyboard shortcuts: ← → preview chords · Enter replay selected chord · Space play or stop</p>
 
           <div className="rack-grid">
             {displayProgression.chords.length > 0 ? (
@@ -1452,6 +1712,7 @@ export default function RngChordsApp() {
                       type="button"
                       className={keptChordSlots.includes(index) ? 'chip-button chip-button--active' : 'chip-button'}
                       onClick={() => toggleKeepChord(index)}
+                      aria-pressed={keptChordSlots.includes(index)}
                     >
                       {keptChordSlots.includes(index) ? 'Kept' : 'Keep'}
                     </button>
@@ -1473,6 +1734,7 @@ export default function RngChordsApp() {
               <div className="empty-rack">
                 <h3>Nothing here yet.</h3>
                 <p>Roll some chords or type your own to get started.</p>
+                <p className="empty-rack__hint">Try Campfire Glow for something friendly, Velvet Keys for softer color, or Surprise Me if you want a quick curveball.</p>
               </div>
             )}
           </div>
@@ -1482,7 +1744,7 @@ export default function RngChordsApp() {
               <div className="player-guide__head">
                 <div className="player-guide__title">
                   <span>{INSTRUMENT_FOCUS_COPY[instrumentFocus].label}</span>
-                  <strong>{activePreset?.label ?? 'Free play'} feel</strong>
+                  <strong>{activePreset?.label ?? 'Free play'} direction</strong>
                 </div>
                 <div className="player-guide__meta">
                   <span>{CHORD_COMPLEXITY_COPY[complexity].label}</span>
@@ -1503,14 +1765,15 @@ export default function RngChordsApp() {
             </div>
           </div>
         </section>
-      </main>
+        </main>
 
-      <footer className="status-bar">
-        <span>{status}</span>
-        <strong>
-          {progression.chords.length} chords · {progressionBeats.toFixed(1)} beats · {progressionDuration}
-        </strong>
-      </footer>
-    </div>
+        <footer className="status-bar" role="status" aria-live="polite">
+          <span>{status}</span>
+          <strong>
+            {progression.chords.length} chords · {progressionBeats.toFixed(1)} beats · {progressionDuration}
+          </strong>
+        </footer>
+      </div>
+    </>
   )
 }
