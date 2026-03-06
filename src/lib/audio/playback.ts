@@ -1,7 +1,13 @@
 import type { PolySynth } from 'tone'
 import type { ProgressionResult } from '../music/types'
 
-export type PlaybackInstrument = 'warm-piano' | 'electric-piano' | 'soft-organ'
+export type PlaybackInstrument =
+  | 'warm-piano'
+  | 'electric-piano'
+  | 'soft-organ'
+  | 'bright-piano'
+  | 'glass-bells'
+  | 'mellow-pad'
 
 export const PLAYBACK_INSTRUMENT_COPY: Record<PlaybackInstrument, { label: string; detail: string }> = {
   'warm-piano': {
@@ -16,10 +22,24 @@ export const PLAYBACK_INSTRUMENT_COPY: Record<PlaybackInstrument, { label: strin
     label: 'Soft Organ',
     detail: 'Longer sustain for slower, floatier ideas.',
   },
+  'bright-piano': {
+    label: 'Bright Piano',
+    detail: 'Sharper and snappier when you want the chords to pop.',
+  },
+  'glass-bells': {
+    label: 'Glass Bells',
+    detail: 'Chimey and delicate for lighter, sparkly ideas.',
+  },
+  'mellow-pad': {
+    label: 'Mellow Pad',
+    detail: 'Slow and soft for dreamy layers and longer holds.',
+  },
 }
 
+type SynthOscillator = 'sine' | 'triangle' | 'sawtooth'
+
 const PLAYBACK_INSTRUMENT_SETTINGS: Record<PlaybackInstrument, {
-  oscillator: 'sine' | 'triangle'
+  oscillator: SynthOscillator
   envelope: {
     attack: number
     decay: number
@@ -42,6 +62,21 @@ const PLAYBACK_INSTRUMENT_SETTINGS: Record<PlaybackInstrument, {
     oscillator: 'triangle',
     envelope: { attack: 0.05, decay: 0.08, sustain: 0.88, release: 0.18 },
     volume: -14,
+  },
+  'bright-piano': {
+    oscillator: 'sawtooth',
+    envelope: { attack: 0.01, decay: 0.11, sustain: 0.14, release: 0.4 },
+    volume: -16,
+  },
+  'glass-bells': {
+    oscillator: 'sine',
+    envelope: { attack: 0.004, decay: 0.26, sustain: 0.04, release: 1.05 },
+    volume: -15,
+  },
+  'mellow-pad': {
+    oscillator: 'triangle',
+    envelope: { attack: 0.16, decay: 0.32, sustain: 0.72, release: 1.28 },
+    volume: -18,
   },
 }
 
