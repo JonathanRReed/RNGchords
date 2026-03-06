@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" rx="36" fill="#0B0706" />
+  <rect x="24" y="24" width="1152" height="582" rx="32" fill="url(#bg)" stroke="rgba(245,208,144,0.18)" />
+  <g opacity="0.92">
+    <rect x="82" y="112" width="452" height="406" rx="28" fill="url(#panel)" stroke="rgba(245,208,144,0.16)" />
+    <rect x="116" y="162" width="146" height="146" rx="28" fill="url(#die1)" />
+    <rect x="284" y="162" width="146" height="146" rx="28" fill="url(#die2)" />
+    <rect x="200" y="330" width="146" height="146" rx="28" fill="url(#die3)" />
+    <text x="189" y="250" fill="#FFF6EB" font-family="Georgia, serif" font-size="60" text-anchor="middle">Cmaj9</text>
+    <text x="357" y="250" fill="#FFF6EB" font-family="Georgia, serif" font-size="64" text-anchor="middle">Am11</text>
+    <text x="273" y="418" fill="#FFF6EB" font-family="Georgia, serif" font-size="64" text-anchor="middle">G13</text>
+  </g>
+  <text x="620" y="188" fill="#F5D090" font-family="Arial, sans-serif" font-size="28" letter-spacing="8">RNG CHORDS</text>
+  <text x="620" y="268" fill="#F6EAD4" font-family="Georgia, serif" font-size="72">Random chord ideas</text>
+  <text x="620" y="344" fill="#F6EAD4" font-family="Georgia, serif" font-size="72">for guitar, piano,</text>
+  <text x="620" y="420" fill="#F6EAD4" font-family="Georgia, serif" font-size="72">and songwriting.</text>
+  <text x="620" y="490" fill="#FFF1DC" font-family="Arial, sans-serif" font-size="30">Roll progressions, hear them instantly, keep the best bits, and export MIDI.</text>
+  <defs>
+    <linearGradient id="bg" x1="600" y1="24" x2="600" y2="606" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#361D12" />
+      <stop offset="1" stop-color="#140C09" />
+    </linearGradient>
+    <linearGradient id="panel" x1="308" y1="112" x2="308" y2="518" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#123731" />
+      <stop offset="1" stop-color="#091312" />
+    </linearGradient>
+    <linearGradient id="die1" x1="189" y1="162" x2="189" y2="308" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B64D5C" />
+      <stop offset="1" stop-color="#641E29" />
+    </linearGradient>
+    <linearGradient id="die2" x1="357" y1="162" x2="357" y2="308" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#C39A61" />
+      <stop offset="1" stop-color="#7B5629" />
+    </linearGradient>
+    <linearGradient id="die3" x1="273" y1="330" x2="273" y2="476" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#4C9D83" />
+      <stop offset="1" stop-color="#1E5C4A" />
+    </linearGradient>
+  </defs>
+</svg>
