@@ -1,7 +1,7 @@
 import { motion, useReducedMotion } from 'motion/react'
 import { startTransition, useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react'
 import { createMidiBlob, downloadMidiBlob } from '../lib/audio/midi'
-import { PLAYBACK_INSTRUMENT_COPY, playProgression, preloadPlayback, stopPlayback } from '../lib/audio/playback'
+import { PLAYBACK_INSTRUMENT_COPY, playProgression, preloadPlayback, previewChord, stopPlayback } from '../lib/audio/playback'
 import { getDiceMotionPlan } from '../lib/dice/motion'
 import {
   DEFAULT_DICE_STYLE_SETTINGS,
@@ -34,6 +34,7 @@ import {
 } from '../lib/music/constants'
 import { createChordDescriptor, describeChord, extensionSummary } from '../lib/music/chords'
 import { createAdvancedRoll, createAdvancedRollFromValues, createGuidedRoll, createGuidedRollFromValues, formatKeyBadge } from '../lib/music/generator'
+import { RHYTHM_FEEL_COPY, applyRhythmFeel, getTheoryTags, rerollChordFromKey, type RhythmFeel } from '../lib/music/ideas'
 import { parseProgressionInput } from '../lib/music/parser'
 import {
   INSTRUMENT_FOCUS_COPY,
@@ -90,6 +91,7 @@ const PLAYBACK_INSTRUMENT_OPTIONS = Object.keys(PLAYBACK_INSTRUMENT_COPY) as Pla
 const INSTRUMENT_FOCUS_OPTIONS = Object.keys(INSTRUMENT_FOCUS_COPY) as InstrumentFocus[]
 const CHORD_COMPLEXITY_OPTIONS = Object.keys(CHORD_COMPLEXITY_COPY) as ChordComplexity[]
 const SURPRISE_TEMPO_OPTIONS = [68, 74, 82, 88, 96, 104, 112, 120, 128, 136] as const
+const SECTION_IDS = ['A', 'B', 'C'] as const
 
 const INITIAL_PRESET = PLAYGROUND_PRESETS[0]
 const INITIAL_COMPLEXITY = INITIAL_PRESET?.complexity ?? 'balanced'
@@ -181,6 +183,41 @@ function formatProgressionSource(source: string): string {
 
 function pickRandom<T>(items: readonly T[]): T {
   return items[Math.floor(Math.random() * items.length)] as T
+}
+
+type SectionId = (typeof SECTION_IDS)[number]
+
+type SectionSnapshot = {
+  activePresetId: string
+  advancedConfig: AdvancedDiceConfig
+  advancedRoll: AdvancedRollResult
+  complexity: ChordComplexity
+  guidedFaces: number[]
+  instrumentFocus: InstrumentFocus
+  mode: Mode
+  playbackInstrument: PlaybackInstrument
+  progression: ProgressionResult
+  rhythmFeel: RhythmFeel
+  tempo: number
+}
+
+function createDelightMessage(progression: ProgressionResult): string | null {
+  if (progression.chords.length < 3 || Math.random() > 0.18) {
+    return null
+  }
+
+  const colorfulCount = progression.chords.filter((chord) => chord.extensions.length > 0).length
+  const uniqueRoots = new Set(progression.chords.map((chord) => chord.root)).size
+
+  if (colorfulCount >= Math.max(2, Math.ceil(progression.chords.length / 2)) && uniqueRoots >= 3) {
+    return 'Nice accident'
+  }
+
+  if (progression.chords.some((chord) => chord.extensions.some((token) => ['b9', '#11', '13', 'b13'].includes(token)))) {
+    return 'Spicy keeper'
+  }
+
+  return 'That one has something'
 }
 
 type StageDie = {
@@ -279,16 +316,25 @@ export default function RngChordsApp() {
   const [tempo, setTempo] = useState(INITIAL_PRESET?.tempo ?? 92)
   const [instrumentFocus, setInstrumentFocus] = useState<InstrumentFocus>(INITIAL_PRESET?.instrumentFocus ?? 'both')
   const [playbackInstrument, setPlaybackInstrument] = useState<PlaybackInstrument>('warm-piano')
+  const [rhythmFeel, setRhythmFeel] = useState<RhythmFeel>('straight')
   const [activePresetId, setActivePresetId] = useState<string>(INITIAL_PRESET?.id ?? 'campfire-glow')
   const [loopEnabled, setLoopEnabled] = useState(false)
   const [playing, setPlaying] = useState(false)
   const [activeChordIndex, setActiveChordIndex] = useState<number | null>(null)
+  const [jamChordIndex, setJamChordIndex] = useState<number | null>(null)
+  const [showTheory, setShowTheory] = useState(false)
+  const [keptChordSlots, setKeptChordSlots] = useState<number[]>([])
+  const [activeSection, setActiveSection] = useState<SectionId>('A')
+  const [sections, setSections] = useState<Record<SectionId, SectionSnapshot | null>>({ A: null, B: null, C: null })
+  const [delightMessage, setDelightMessage] = useState<string | null>(null)
   const [diceImpulse, setDiceImpulse] = useState(1)
   const [diceStyleSettings, setDiceStyleSettings] = useState<DiceStyleSettings>(DEFAULT_DICE_STYLE_SETTINGS)
   const [status, setStatus] = useState('Roll some chords, hear them back, and keep the bits you like.')
   const [midiBusy, setMidiBusy] = useState(false)
 
-  const progressionBeats = useMemo(() => totalBeats(progression.chords), [progression.chords])
+  const displayProgression = useMemo(() => applyRhythmFeel(progression, rhythmFeel), [progression, rhythmFeel])
+  const highlightedChordIndex = activeChordIndex ?? jamChordIndex
+  const progressionBeats = useMemo(() => totalBeats(displayProgression.chords), [displayProgression.chords])
   const progressionDuration = useMemo(() => formatTime(progressionBeats, tempo), [progressionBeats, tempo])
   const activePreset = useMemo(
     () => PLAYGROUND_PRESETS.find((preset) => preset.id === activePresetId) ?? PLAYGROUND_PRESETS[0],
@@ -296,10 +342,10 @@ export default function RngChordsApp() {
   )
   const paletteOptions = useMemo(() => resolvePaletteOptions(diceStyleSettings.theme), [diceStyleSettings.theme])
   const diceTrayStyle = useMemo(() => getDiceTrayStyle(diceStyleSettings) as CSSProperties, [diceStyleSettings])
-  const playerTips = useMemo(() => createPlayerTips(progression, instrumentFocus), [instrumentFocus, progression])
+  const playerTips = useMemo(() => createPlayerTips(displayProgression, instrumentFocus), [displayProgression, instrumentFocus])
   const visiblePlayerTips = useMemo(() => playerTips.slice(0, 1), [playerTips])
-  const practicePrompt = useMemo(() => createPracticePrompt(progression, instrumentFocus), [instrumentFocus, progression])
-  const visibleExplanation = useMemo(() => progression.explanation.slice(0, 1), [progression.explanation])
+  const practicePrompt = useMemo(() => createPracticePrompt(displayProgression, instrumentFocus), [displayProgression, instrumentFocus])
+  const visibleExplanation = useMemo(() => displayProgression.explanation.slice(0, 1), [displayProgression.explanation])
   const stageDice: StageDie[] = mode === 'advanced'
     ? ADVANCED_PARAMETERS.map((parameter, index) => ({
         label: ADVANCED_PARAMETER_LABELS[parameter],
@@ -309,7 +355,7 @@ export default function RngChordsApp() {
         accent: (['ruby', 'brass', 'emerald', 'sapphire', 'ruby'][index] ?? 'ruby') as
           | DiceAccent,
       }))
-    : progression.chords.map((chord, index) => ({
+    : displayProgression.chords.map((chord, index) => ({
         label: `Chord ${index + 1}`,
         value: formatDieChordValue(chord),
         footer: mode === 'guided' ? `d${guidedFaces[index] ?? 6}` : RHYTHM_LABELS[chord.rhythmBeats] ?? `${chord.rhythmBeats} beats`,
@@ -322,12 +368,15 @@ export default function RngChordsApp() {
     stopPlayback()
     setPlaying(false)
     setActiveChordIndex(null)
+    setJamChordIndex(null)
   }, [])
 
   const commitProgression = useCallback((next: ProgressionResult, nextMode: Mode, message: string) => {
     resetPlaybackUi()
     setMode(nextMode)
     setManualIssues([])
+    setKeptChordSlots([])
+    setDelightMessage(createDelightMessage(next))
     setStatus(message)
     setDiceImpulse((current) => current + 1)
     startTransition(() => {
@@ -457,6 +506,129 @@ export default function RngChordsApp() {
     }
   }, [loadPreset])
 
+  const previewIdeaChord = useCallback(async (index: number) => {
+    const chord = displayProgression.chords[index]
+
+    if (!chord || playing) {
+      return
+    }
+
+    setJamChordIndex(index)
+    preloadPlayback()
+
+    try {
+      await previewChord(chord, playbackInstrument)
+    } catch (error) {
+      console.error('Chord preview failed', error)
+    }
+  }, [displayProgression.chords, playbackInstrument, playing])
+
+  const toggleKeepChord = useCallback((index: number) => {
+    setKeptChordSlots((current) => (current.includes(index) ? current.filter((slot) => slot !== index) : [...current, index].toSorted((left, right) => left - right)))
+  }, [])
+
+  const updateProgressionChords = useCallback((nextChords: ChordDescriptor[], message: string, nextExplanation?: string[]) => {
+    resetPlaybackUi()
+    setDiceImpulse((current) => current + 1)
+    setProgression((current) => ({
+      ...current,
+      chords: nextChords,
+      explanation: nextExplanation ?? current.explanation,
+      rollSummary: nextChords.map((item, itemIndex) => `Chord ${itemIndex + 1}: ${item.label}`),
+    }))
+    setDelightMessage(createDelightMessage({ ...progression, chords: nextChords }))
+    setStatus(message)
+  }, [progression, resetPlaybackUi])
+
+  const rerollChord = useCallback((index: number) => {
+    const chord = progression.chords[index]
+
+    if (!chord) {
+      return
+    }
+
+    const nextChord = rerollChordFromKey({
+      chord,
+      keyCenter: progression.keyCenter,
+      complexity,
+      index,
+    })
+
+    const nextChords = progression.chords.map((entry, entryIndex) => (entryIndex === index ? nextChord : entry))
+    updateProgressionChords(nextChords, `Rerolled slot ${index + 1}.`, [`Slot ${index + 1} got a fresh spin inside ${progression.keyCenter}.`])
+  }, [complexity, progression, updateProgressionChords])
+
+  const rerollUnlockedChords = useCallback(() => {
+    if (progression.chords.length === 0) {
+      return
+    }
+
+    const nextChords = progression.chords.map((chord, index) => {
+      if (keptChordSlots.includes(index)) {
+        return chord
+      }
+
+      return rerollChordFromKey({
+        chord,
+        keyCenter: progression.keyCenter,
+        complexity,
+        index,
+      })
+    })
+
+    updateProgressionChords(nextChords, keptChordSlots.length > 0 ? 'Rerolled the open slots and kept the pinned ones.' : 'Rerolled the whole idea.', [`Fresh pass around ${progression.keyCenter} with ${CHORD_COMPLEXITY_COPY[complexity].label.toLowerCase()} flavor.`])
+  }, [complexity, keptChordSlots, progression, updateProgressionChords])
+
+  const saveSection = useCallback(() => {
+    setSections((current) => ({
+      ...current,
+      [activeSection]: {
+        activePresetId,
+        advancedConfig: {
+          chordCount: advancedConfig.chordCount,
+          faceCounts: { ...advancedConfig.faceCounts },
+        },
+        advancedRoll,
+        complexity,
+        guidedFaces: [...guidedFaces],
+        instrumentFocus,
+        mode,
+        playbackInstrument,
+        progression,
+        rhythmFeel,
+        tempo,
+      },
+    }))
+    setStatus(`Saved this idea to section ${activeSection}.`)
+  }, [activePresetId, activeSection, advancedConfig, advancedRoll, complexity, guidedFaces, instrumentFocus, mode, playbackInstrument, progression, rhythmFeel, tempo])
+
+  const loadSection = useCallback((sectionId: SectionId) => {
+    setActiveSection(sectionId)
+
+    const snapshot = sections[sectionId]
+
+    if (!snapshot) {
+      setStatus(`Section ${sectionId} is empty.`)
+      return
+    }
+
+    resetPlaybackUi()
+    setActivePresetId(snapshot.activePresetId)
+    setAdvancedConfig({ chordCount: snapshot.advancedConfig.chordCount, faceCounts: { ...snapshot.advancedConfig.faceCounts } })
+    setAdvancedRoll(snapshot.advancedRoll)
+    setComplexity(snapshot.complexity)
+    setGuidedFaces([...snapshot.guidedFaces])
+    setInstrumentFocus(snapshot.instrumentFocus)
+    setMode(snapshot.mode)
+    setPlaybackInstrument(snapshot.playbackInstrument)
+    setProgression(snapshot.progression)
+    setRhythmFeel(snapshot.rhythmFeel)
+    setKeptChordSlots([])
+    setDelightMessage(createDelightMessage(snapshot.progression))
+    setTempo(snapshot.tempo)
+    setStatus(`Loaded section ${sectionId}.`)
+  }, [resetPlaybackUi, sections])
+
   const updateBuilder = useCallback(<Key extends keyof BuilderState>(key: Key, value: BuilderState[Key]) => {
     setBuilder((current) => ({ ...current, [key]: value }))
   }, [])
@@ -549,17 +721,20 @@ export default function RngChordsApp() {
       keyCenter: chords[0]?.root ?? current.keyCenter,
       rollSummary: chords.map((item, itemIndex) => `Chord ${itemIndex + 1}: ${item.label}`),
     }))
+    setKeptChordSlots((current) => current.filter((slot) => slot !== index).map((slot) => (slot > index ? slot - 1 : slot)))
     setStatus('Removed that chord.')
   }, [progression.chords])
 
   const clearProgression = useCallback(() => {
     resetPlaybackUi()
     setProgression((current) => ({ ...current, chords: [], rollSummary: [] }))
+    setKeptChordSlots([])
+    setDelightMessage(null)
     setStatus('Cleared. Roll something new when you want another idea.')
   }, [resetPlaybackUi])
 
   const startPlayback = useCallback(async () => {
-    if (progression.chords.length === 0) {
+    if (displayProgression.chords.length === 0) {
       setStatus('Nothing to play yet. Roll something first.')
       return
     }
@@ -572,7 +747,7 @@ export default function RngChordsApp() {
     )
 
     try {
-      await playProgression(progression, tempo, {
+      await playProgression(displayProgression, tempo, {
         instrument: playbackInstrument,
         loop: loopEnabled,
         onChordStart: (index) => setActiveChordIndex(index),
@@ -589,7 +764,7 @@ export default function RngChordsApp() {
       resetPlaybackUi()
       setStatus('Playback did not start. Try again or reload.')
     }
-  }, [loopEnabled, playbackInstrument, progression, resetPlaybackUi, tempo])
+  }, [displayProgression, loopEnabled, playbackInstrument, resetPlaybackUi, tempo])
 
   const haltPlayback = useCallback(() => {
     resetPlaybackUi()
@@ -597,7 +772,7 @@ export default function RngChordsApp() {
   }, [resetPlaybackUi])
 
   const exportMidi = useCallback(async () => {
-    if (progression.chords.length === 0) {
+    if (displayProgression.chords.length === 0) {
       setStatus('Roll something before exporting.')
       return
     }
@@ -605,8 +780,8 @@ export default function RngChordsApp() {
     setMidiBusy(true)
 
     try {
-      const blob = await createMidiBlob(progression, tempo)
-      const safeRoot = progression.keyCenter.toLowerCase().replace('#', 'sharp')
+      const blob = await createMidiBlob(displayProgression, tempo)
+      const safeRoot = displayProgression.keyCenter.toLowerCase().replace('#', 'sharp')
       downloadMidiBlob(blob, `rng-chords-${safeRoot}-${tempo}bpm.mid`)
       setStatus('MIDI exported.')
     } catch (error) {
@@ -615,7 +790,53 @@ export default function RngChordsApp() {
     } finally {
       setMidiBusy(false)
     }
-  }, [progression, tempo])
+  }, [displayProgression, tempo])
+
+  useEffect(() => {
+    const handleKeydown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null
+
+      if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) {
+        return
+      }
+
+      if (event.code === 'Space') {
+        event.preventDefault()
+
+        if (playing) {
+          haltPlayback()
+        } else {
+          void startPlayback()
+        }
+
+        return
+      }
+
+      if (displayProgression.chords.length === 0) {
+        return
+      }
+
+      if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+        event.preventDefault()
+        const direction = event.key === 'ArrowRight' ? 1 : -1
+        const nextIndex = jamChordIndex === null
+          ? (direction > 0 ? 0 : displayProgression.chords.length - 1)
+          : (jamChordIndex + direction + displayProgression.chords.length) % displayProgression.chords.length
+        void previewIdeaChord(nextIndex)
+      }
+
+      if (event.key === 'Enter' && jamChordIndex !== null) {
+        event.preventDefault()
+        void previewIdeaChord(jamChordIndex)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeydown)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeydown)
+    }
+  }, [displayProgression.chords.length, haltPlayback, jamChordIndex, playing, previewIdeaChord, startPlayback])
 
   useEffect(() => {
     preloadPlayback()
@@ -1089,6 +1310,55 @@ export default function RngChordsApp() {
             <p>Pick a sound, set the tempo, and listen back.</p>
           </div>
 
+          <div className="idea-utility-bar">
+            <div className="idea-memory">
+              <div className="idea-memory__copy">
+                <span>Idea slots</span>
+                <strong>Save a version in A, B, or C, then click a filled slot to load it back.</strong>
+              </div>
+              <div className="section-strip" role="tablist" aria-label="Idea slots">
+                {SECTION_IDS.map((sectionId) => {
+                  const filled = Boolean(sections[sectionId])
+                  return (
+                    <button
+                      key={sectionId}
+                      type="button"
+                      className={sectionId === activeSection ? 'chip-button chip-button--active section-chip' : 'chip-button section-chip'}
+                      onClick={() => loadSection(sectionId)}
+                      aria-label={filled ? `Load saved idea slot ${sectionId}` : `Idea slot ${sectionId} is empty`}
+                      title={filled ? `Load saved idea slot ${sectionId}` : `Idea slot ${sectionId} is empty`}
+                    >
+                      {sectionId}
+                      {filled ? ' •' : ''}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+            <div className="idea-utility-bar__actions">
+              <button type="button" className="pill-button pill-button--muted" onClick={saveSection}>
+                Save to {activeSection}
+              </button>
+              <button type="button" className="pill-button" onClick={rerollUnlockedChords} disabled={progression.chords.length === 0}>
+                Reroll unlocked
+              </button>
+              <button
+                type="button"
+                className={showTheory ? 'chip-button chip-button--active' : 'chip-button'}
+                onClick={() => setShowTheory((current) => !current)}
+              >
+                Theory {showTheory ? 'On' : 'Off'}
+              </button>
+            </div>
+          </div>
+
+          {delightMessage ? (
+            <div className="delight-banner" role="status">
+              <span>Little spark</span>
+              <strong>{delightMessage}</strong>
+            </div>
+          ) : null}
+
           <div className="transport-strip">
             <label className="transport-field">
               <span>Instrument</span>
@@ -1104,6 +1374,17 @@ export default function RngChordsApp() {
                 ))}
               </select>
               <strong>{PLAYBACK_INSTRUMENT_COPY[playbackInstrument].detail}</strong>
+            </label>
+            <label className="transport-field">
+              <span>Feel</span>
+              <select name="rhythm-feel" value={rhythmFeel} onChange={(event) => setRhythmFeel(event.target.value as RhythmFeel)}>
+                {(Object.keys(RHYTHM_FEEL_COPY) as RhythmFeel[]).map((entry) => (
+                  <option key={entry} value={entry}>
+                    {RHYTHM_FEEL_COPY[entry].label}
+                  </option>
+                ))}
+              </select>
+              <strong>{RHYTHM_FEEL_COPY[rhythmFeel].detail}</strong>
             </label>
             <label className="transport-field">
               <span>Tempo</span>
@@ -1131,12 +1412,14 @@ export default function RngChordsApp() {
             </button>
           </div>
 
+          <p className="jam-hint">Keys: ← → preview chords · Enter replay selected chord · Space play or stop</p>
+
           <div className="rack-grid">
-            {progression.chords.length > 0 ? (
-              progression.chords.map((chord, index) => (
+            {displayProgression.chords.length > 0 ? (
+              displayProgression.chords.map((chord, index) => (
                 <article
                   key={chord.id}
-                  className={index === activeChordIndex ? 'chord-card chord-card--active' : 'chord-card'}
+                  className={index === highlightedChordIndex ? 'chord-card chord-card--active' : 'chord-card'}
                 >
                   <div className="chord-card__head">
                     <div>
@@ -1154,6 +1437,30 @@ export default function RngChordsApp() {
                         {note}
                       </span>
                     ))}
+                  </div>
+                  {showTheory ? (
+                    <div className="theory-row">
+                      {getTheoryTags(chord, progression.keyCenter).map((tag) => (
+                        <span key={`${chord.id}-${tag}`} className="theory-pill">
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                  <div className="chord-card__actions">
+                    <button
+                      type="button"
+                      className={keptChordSlots.includes(index) ? 'chip-button chip-button--active' : 'chip-button'}
+                      onClick={() => toggleKeepChord(index)}
+                    >
+                      {keptChordSlots.includes(index) ? 'Kept' : 'Keep'}
+                    </button>
+                    <button type="button" className="chip-button" onClick={() => void previewIdeaChord(index)}>
+                      Preview
+                    </button>
+                    <button type="button" className="chip-button" onClick={() => rerollChord(index)}>
+                      Reroll
+                    </button>
                   </div>
                   <div className="chord-card__coach">{createChordCoach(chord, instrumentFocus)}</div>
                   <footer>

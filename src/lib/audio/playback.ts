@@ -1,5 +1,5 @@
 import type { PolySynth } from 'tone'
-import type { ProgressionResult } from '../music/types'
+import type { ChordDescriptor, ProgressionResult } from '../music/types'
 
 export type PlaybackInstrument =
   | 'warm-piano'
@@ -198,6 +198,20 @@ class PlaybackEngine {
     return cursor
   }
 
+  async preview(chord: ChordDescriptor, instrument: PlaybackInstrument): Promise<void> {
+    const tone = await this.ensureReady()
+
+    this.ensureSynth(instrument, tone)
+
+    if (!this.synth) {
+      return
+    }
+
+    const noteNames = chord.midi.map((value) => tone.Frequency(value, 'midi').toNote())
+    this.synth.releaseAll()
+    this.synth.triggerAttackRelease(noteNames, Math.max(0.18, chord.rhythmBeats * 0.42), undefined, 0.5)
+  }
+
   stop(): void {
     if (!this.tone) {
       return
@@ -221,6 +235,10 @@ export function preloadPlayback(): void {
 
 export async function playProgression(progression: ProgressionResult, tempo: number, options: PlayOptions): Promise<number> {
   return engine.play(progression, tempo, options)
+}
+
+export async function previewChord(chord: ChordDescriptor, instrument: PlaybackInstrument): Promise<void> {
+  return engine.preview(chord, instrument)
 }
 
 export function stopPlayback(): void {

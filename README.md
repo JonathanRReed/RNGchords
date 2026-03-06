@@ -1,43 +1,99 @@
-# Astro Starter Kit: Minimal
+# RNG Chords
+
+RNG Chords is a playful browser-based chord idea tool for musicians.
+
+It mixes dice-driven harmony generation, quick playback, MIDI export, and a lightweight sketchpad workflow so you can find a happy accident, keep the good bits, and keep moving.
+
+## What it does
+
+- Roll guided or advanced chord ideas
+- Preview and play progressions in the browser
+- Switch between multiple playback instruments
+- Keep or reroll individual chords
+- Save idea snapshots into `A`, `B`, and `C` slots
+- Change rhythm feel without rebuilding the whole progression
+- Toggle lightweight theory labels
+- Export ideas as MIDI
+
+## Tech stack
+
+- Astro
+- React
+- Motion
+- Tone.js
+- Bun
+
+## Getting started
+
+Install dependencies:
 
 ```sh
-bun create astro@latest -- --template minimal
+bun install
 ```
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+Start the dev server:
 
-## 🚀 Project Structure
+```sh
+bun run dev
+```
 
-Inside of your Astro project, you'll see the following folders and files:
+Build for production:
+
+```sh
+bun run build
+```
+
+Run the full check suite:
+
+```sh
+bun run lint && bun run typecheck && bun test
+```
+
+## How to use it
+
+### Roll ideas
+
+- Use `Roll ideas` for the current setup
+- Use `Surprise me` to randomize the musical setup and playback instrument
+
+### Shape the progression
+
+- Use `Keep` to pin a chord you like
+- Use `Reroll` on a single slot for a fresh replacement
+- Use `Reroll unlocked` to refresh only the chords you did not keep
+
+### Compare versions
+
+- Save the current idea into slot `A`, `B`, or `C`
+- Click a filled slot to load that saved version back in
+
+### Play and preview
+
+- Pick an instrument and tempo in the Sound panel
+- Change the rhythm `Feel` to reshape playback phrasing
+- Use `Play`, `Stop`, and `Loop` to audition ideas
+
+### Keyboard shortcuts
+
+- `Space` — play or stop
+- `←` / `→` — preview neighboring chords
+- `Enter` — replay the selected chord preview
+
+## Project structure
 
 ```text
 /
 ├── public/
 ├── src/
-│   └── pages/
-│       └── index.astro
+│   ├── components/
+│   ├── lib/
+│   ├── pages/
+│   └── styles/
+├── tests/
 └── package.json
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## Notes
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
-
-Any static assets, like images, can be placed in the `public/` directory.
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `bun install`             | Installs dependencies                            |
-| `bun dev`             | Starts local dev server at `localhost:4321`      |
-| `bun build`           | Build your production site to `./dist/`          |
-| `bun preview`         | Preview your build locally, before deploying     |
-| `bun astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `bun astro -- --help` | Get help using the Astro CLI                     |
-
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+- The app is designed for fast ideation, not strict theory-first composition
+- Playback uses browser audio, so the first interaction may need to unlock audio on some browsers
