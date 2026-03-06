@@ -707,6 +707,29 @@ button {
     0 1px 0 rgba(255, 220, 168, 0.02);
 }
 
+.transport-field select {
+  min-width: 0;
+  padding-right: 44px;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-appearance: none;
+  appearance: none;
+  background:
+    linear-gradient(45deg, transparent 50%, rgba(255, 239, 211, 0.84) 50%),
+    linear-gradient(135deg, rgba(255, 239, 211, 0.84) 50%, transparent 50%),
+    linear-gradient(180deg, rgba(15, 11, 11, 0.96), rgba(31, 16, 15, 0.92)),
+    rgba(0, 0, 0, 0.1);
+  background-position:
+    calc(100% - 20px) calc(50% - 3px),
+    calc(100% - 14px) calc(50% - 3px),
+    0 0,
+    0 0;
+  background-size: 6px 6px, 6px 6px, 100% 100%, 100% 100%;
+  background-repeat: no-repeat;
+}
+
 .control-field select {
   min-width: 0;
   padding-right: 44px;
@@ -1207,6 +1230,143 @@ button {
   align-items: start;
 }
 
+.idea-utility-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  gap: 10px 12px;
+  margin-bottom: 14px;
+  padding: 10px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 226, 177, 0.1);
+  background: linear-gradient(180deg, rgba(26, 15, 14, 0.9), rgba(16, 10, 10, 0.96));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 239, 209, 0.06),
+    inset 0 10px 18px rgba(255, 225, 186, 0.02),
+    0 10px 18px rgba(0, 0, 0, 0.16);
+}
+
+.idea-utility-bar__actions,
+.section-strip,
+.chord-card__actions,
+.theory-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.idea-memory {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.idea-memory__copy {
+  display: grid;
+  gap: 4px;
+}
+
+.idea-memory__copy span {
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 0.66rem;
+  color: rgba(245, 208, 144, 0.74);
+}
+
+.idea-memory__copy strong {
+  max-width: none;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: rgba(255, 241, 220, 0.84);
+}
+
+.idea-utility-bar__actions {
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 226, 177, 0.08);
+}
+
+.section-strip {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(44px, auto);
+  align-items: center;
+  width: max-content;
+  max-width: 100%;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 226, 177, 0.08);
+  background: linear-gradient(180deg, rgba(18, 12, 11, 0.74), rgba(10, 8, 8, 0.86));
+  box-shadow: inset 0 1px 0 rgba(255, 245, 228, 0.04);
+}
+
+.section-chip {
+  min-width: 46px;
+  padding: 8px 12px;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+
+.section-chip:hover,
+.section-chip:focus-visible {
+  border-color: rgba(255, 226, 177, 0.14);
+  background: linear-gradient(180deg, rgba(54, 31, 26, 0.72), rgba(24, 15, 14, 0.82));
+}
+
+.section-chip.chip-button--active {
+  border-color: rgba(245, 208, 144, 0.24);
+  background: linear-gradient(180deg, rgba(96, 54, 24, 0.96), rgba(48, 22, 16, 0.98));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 221, 0.12),
+    0 6px 12px rgba(0, 0, 0, 0.16),
+    0 0 0 1px rgba(245, 208, 144, 0.05);
+}
+
+.idea-utility-bar__actions .pill-button,
+.idea-utility-bar__actions .chip-button {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.delight-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(244, 211, 145, 0.14);
+  background:
+    radial-gradient(circle at 12% 30%, rgba(255, 212, 132, 0.12), transparent 28%),
+    linear-gradient(180deg, rgba(65, 36, 19, 0.72), rgba(30, 18, 13, 0.94));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 246, 226, 0.08),
+    0 12px 20px rgba(0, 0, 0, 0.16);
+}
+
+.delight-banner span,
+.jam-hint,
+.theory-pill {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.68rem;
+}
+
+.delight-banner strong {
+  font-size: 0.96rem;
+  color: rgba(255, 245, 223, 0.94);
+}
+
+.jam-hint {
+  margin: 12px 0 0;
+  padding-left: 4px;
+  color: rgba(245, 223, 193, 0.68);
+}
+
 .results-bank__meta > * {
   min-width: 0;
 }
@@ -1243,6 +1403,8 @@ button {
   border: 1px solid rgba(255, 226, 177, 0.14);
   border-radius: 18px;
   padding: 14px 16px;
+  font: inherit;
+  font-size: 1rem;
   color: var(--ivory);
   background:
     linear-gradient(180deg, rgba(15, 11, 11, 0.96), rgba(31, 16, 15, 0.92)),
@@ -1334,6 +1496,35 @@ button {
   gap: 10px;
 }
 
+.theory-row {
+  margin-top: 2px;
+}
+
+.theory-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 10px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(49, 31, 64, 0.88), rgba(22, 15, 35, 0.96));
+  border: 1px solid rgba(191, 166, 244, 0.12);
+  color: rgba(244, 237, 255, 0.82);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.chord-card__actions {
+  align-items: center;
+  padding: 6px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 226, 177, 0.08);
+  background: linear-gradient(180deg, rgba(23, 14, 13, 0.88), rgba(13, 10, 10, 0.96));
+}
+
+.chord-card__actions .chip-button {
+  flex: 1 1 120px;
+  justify-content: center;
+}
+
 .note-pill {
   display: inline-flex;
   align-items: center;
@@ -1422,6 +1613,10 @@ button {
   .transport-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .idea-utility-bar__actions {
+    justify-content: flex-start;
+  }
 }
 
 @media (max-width: 800px) {
@@ -1461,12 +1656,36 @@ button {
   .hero-actions,
   .tray-toolbar,
   .dice-lab__head,
+  .idea-utility-bar,
   .player-guide__head,
   .status-bar,
   .chord-card footer,
   .row-split {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .idea-utility-bar__actions,
+  .section-strip {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .idea-utility-bar__actions {
+    justify-content: flex-start;
+  }
+
+  .chord-card__actions .chip-button {
+    width: 100%;
+  }
+
+  .section-chip {
+    width: auto;
+  }
+
+  .section-chip,
+  .chord-card__actions .chip-button {
+    min-width: 0;
   }
 
   .hero-stats {

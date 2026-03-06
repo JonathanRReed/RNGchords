@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createChordDescriptor } from '../src/lib/music/chords'
 import { createAdvancedRoll, createAdvancedRollFromValues, createGuidedRoll } from '../src/lib/music/generator'
+import { applyRhythmFeel, getTheoryTags } from '../src/lib/music/ideas'
 import { parseChordSymbol, parseProgressionInput } from '../src/lib/music/parser'
 
 describe('music parsing and normalization', () => {
@@ -115,5 +116,43 @@ describe('dice generation', () => {
 
     expect(basic.progression.chords.every((chord) => chord.extensions.every((token) => ['6', '7', 'maj7'].includes(token)))).toBe(true)
     expect(wild.progression.chords.some((chord) => chord.extensions.some((token) => ['b9', '#9', '#11', 'b13', '11', '13'].includes(token)))).toBe(true)
+  })
+})
+
+describe('idea helpers', () => {
+  it('applies rhythm feel without changing the chord count', () => {
+    const progression = {
+      chords: [
+        createChordDescriptor({ id: 'c-1', root: 'C', quality: 'maj', extensions: ['maj7'], rhythmBeats: 1, source: 'manual-builder' }),
+        createChordDescriptor({ id: 'c-2', root: 'A', quality: 'min', extensions: ['7'], rhythmBeats: 1, source: 'manual-builder' }),
+        createChordDescriptor({ id: 'c-3', root: 'D', quality: 'dom', extensions: ['9'], rhythmBeats: 2, source: 'manual-builder' }),
+      ],
+      explanation: ['Test progression'],
+      rollSummary: ['Slot 1', 'Slot 2', 'Slot 3'],
+      source: 'manual-builder' as const,
+      keyCenter: 'C' as const,
+    }
+
+    const result = applyRhythmFeel(progression, 'stabs')
+
+    expect(result.chords).toHaveLength(3)
+    expect(result.chords.some((chord, index) => chord.rhythmBeats !== progression.chords[index]?.rhythmBeats)).toBe(true)
+  })
+
+  it('creates useful theory tags from the current key center', () => {
+    const chord = createChordDescriptor({
+      id: 'theory-1',
+      root: 'G',
+      quality: 'dom',
+      extensions: ['9'],
+      rhythmBeats: 1,
+      source: 'manual-builder',
+    })
+
+    const tags = getTheoryTags(chord, 'C')
+
+    expect(tags).toContain('V')
+    expect(tags).toContain('Color')
+    expect(tags).toContain('Dominant')
   })
 })
