@@ -123,26 +123,6 @@ const INITIAL_BUILDER: BuilderState = {
   inversion: 0,
   rhythmBeats: 1,
 }
-const QUICK_START_STEPS = [
-  'Choose the instrument focus that matches what you play.',
-  'Pick Easy, Color, or Spicy chord complexity.',
-  'Roll a first idea, then Preview, Keep, and Reroll until it feels right.',
-] as const
-const HOW_IT_WORKS_STEPS = [
-  'Roll a progression from presets, guided dice, or advanced dice.',
-  'Hear each chord back, pin the good ones, and reroll the rest.',
-  'Loop the full idea or export MIDI when you want to build from it elsewhere.',
-] as const
-const LAUNCH_USE_CASES = [
-  'Songwriters who want a verse or chorus seed in under a minute.',
-  'Guitar and piano players who want fresh voicings without opening a DAW.',
-  'Producers who want to sketch harmony fast and export MIDI when it lands.',
-] as const
-const OUTCOME_EXAMPLES = [
-  'Indie-pop lift with bright major color and quick movement.',
-  'Neo-soul drift with rich extensions and smoother voice leading.',
-  'Cinematic tension with darker harmony and a longer release.',
-] as const
 
 function totalBeats(chords: ChordDescriptor[]): number {
   return chords.reduce((sum, chord) => sum + chord.rhythmBeats, 0)
@@ -1126,56 +1106,6 @@ export default function RngChordsApp() {
             </div>
           </div>
         </div>
-        </section>
-
-        <section className="launch-guide panel-surface panel-surface--wide" aria-labelledby="launch-guide-title">
-          <div className="panel-title">
-            <span className="panel-title__eyebrow">Start Here</span>
-            <h2 id="launch-guide-title">Go from blank page to a playable progression fast.</h2>
-            <p>Use the quick start path if you are new, then keep, reroll, and export when a happy accident shows up.</p>
-          </div>
-          <div className="launch-guide__grid">
-            <article className="launch-card">
-              <span className="launch-card__eyebrow">Quick Start</span>
-              <strong>Pick an instrument, choose a complexity, and roll your first progression.</strong>
-              <ol className="launch-card__list">
-                {QUICK_START_STEPS.map((step) => (
-                  <li key={step}>{step}</li>
-                ))}
-              </ol>
-              <div className="launch-card__actions">
-                <button type="button" className="action-button" onClick={generateRandomChords}>
-                  Roll First Idea
-                </button>
-              </div>
-            </article>
-
-            <article className="launch-card">
-              <span className="launch-card__eyebrow">How It Works</span>
-              <strong>Roll, refine, then play or export.</strong>
-              <ol className="launch-card__list launch-card__list--steps">
-                {HOW_IT_WORKS_STEPS.map((step) => (
-                  <li key={step}>{step}</li>
-                ))}
-              </ol>
-            </article>
-
-            <article className="launch-card">
-              <span className="launch-card__eyebrow">Try Vibes Like</span>
-              <strong>Find a direction fast, then steer it toward the mood you want.</strong>
-              <ul className="launch-card__list">
-                {OUTCOME_EXAMPLES.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-              <p className="launch-card__note">Also good for {LAUNCH_USE_CASES.join(' ')}</p>
-              <div className="launch-card__actions">
-                <button type="button" className="pill-button pill-button--bright" onClick={surpriseMe}>
-                  Surprise Me
-                </button>
-              </div>
-            </article>
-          </div>
         </section>
 
         <main id="main-content" className="tabletop-grid tabletop-grid--workstation" tabIndex={-1}>
