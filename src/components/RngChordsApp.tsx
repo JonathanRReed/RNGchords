@@ -1049,7 +1049,7 @@ export default function RngChordsApp() {
       <a className="skip-link" href="#main-content">Skip to the chord generator</a>
       <div className="rng-app-shell">
         <div className="rng-app-shell__glow" />
-        <section className="workstation-top panel-surface panel-surface--wide">
+        <section className="workstation-top panel-surface panel-surface--wide reveal" style={{ animationDelay: '80ms' }}>
         <div className="workstation-topbar">
           <div className="workstation-brand">
             <span className="hero-strip__kicker">RNG Chords</span>
@@ -1109,7 +1109,7 @@ export default function RngChordsApp() {
         </section>
 
         <main id="main-content" className="tabletop-grid tabletop-grid--workstation" tabIndex={-1}>
-        <section className="control-bank control-bank--compact panel-surface">
+        <section className="control-bank control-bank--compact panel-surface reveal" style={{ animationDelay: '200ms' }}>
           <div className="stack-block stack-block--dense">
             <div className="compact-panel-head">
               <span className="panel-title__eyebrow">Idea sets</span>
@@ -1388,7 +1388,7 @@ export default function RngChordsApp() {
           </div>
         </section>
 
-        <section className="stage-bank panel-surface panel-surface--tray">
+        <section className="stage-bank panel-surface panel-surface--tray reveal" style={{ animationDelay: '300ms' }}>
           <div className="compact-panel-head compact-panel-head--tray">
             <span className="panel-title__eyebrow">Dice</span>
             <h2>Idea tray</h2>
@@ -1490,7 +1490,7 @@ export default function RngChordsApp() {
           </div>
         </section>
 
-        <section className="results-bank panel-surface">
+        <section className="results-bank panel-surface reveal" style={{ animationDelay: '400ms' }}>
           <div className="compact-panel-head compact-panel-head--results">
             <span className="panel-title__eyebrow">Sound</span>
             <h2>Playback &amp; edit</h2>
@@ -1697,7 +1697,7 @@ export default function RngChordsApp() {
         </section>
         </main>
 
-        <footer className="status-bar" role="status" aria-live="polite">
+        <footer className="status-bar reveal" role="status" aria-live="polite" style={{ animationDelay: '500ms' }}>
           <span>{status}</span>
           <strong>
             {progression.chords.length} chords · {progressionBeats.toFixed(1)} beats · {progressionDuration}
