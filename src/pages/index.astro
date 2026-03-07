@@ -1,20 +1,24 @@
 ---
-import RngChordsApp from '../components/RngChordsApp'
-import '../styles/global.css'
+import RngChordsApp from "../components/RngChordsApp";
+import "../styles/global.css";
 
-const pageTitle = 'RNG Chords | Random chord ideas for guitar, piano, and songwriting'
-const pageDescription = 'RNG Chords is a playful browser-based chord generator for guitarists, pianists, songwriters, and producers. Roll progressions, hear them instantly, keep the best chords, and export MIDI when an idea lands.'
-const pageUrl = Astro.site ? new URL('/', Astro.site).toString() : undefined
-const socialImage = Astro.site ? new URL('/social-card.svg', Astro.site).toString() : '/social-card.svg'
+const pageTitle =
+	"RNG Chords | Random chord ideas for guitar, piano, and songwriting";
+const pageDescription =
+	"RNG Chords is a playful browser-based chord generator for guitarists, pianists, songwriters, and producers. Roll progressions, hear them instantly, keep the best chords, and export MIDI when an idea lands.";
+const pageUrl = Astro.site ? new URL("/", Astro.site).toString() : undefined;
+const socialImage = Astro.site
+	? new URL("/social-card.svg", Astro.site).toString()
+	: "/social-card.svg";
 const webAppSchema = JSON.stringify({
-  '@context': 'https://schema.org',
-  '@type': 'WebApplication',
-  name: 'RNG Chords',
-  applicationCategory: 'MusicApplication',
-  operatingSystem: 'Web',
-  description: pageDescription,
-  ...(pageUrl ? { url: pageUrl } : {}),
-})
+	"@context": "https://schema.org",
+	"@type": "WebApplication",
+	name: "RNG Chords",
+	applicationCategory: "MusicApplication",
+	operatingSystem: "Web",
+	description: pageDescription,
+	...(pageUrl ? { url: pageUrl } : {}),
+});
 ---
 
 <html lang="en">
@@ -25,10 +29,7 @@ const webAppSchema = JSON.stringify({
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="generator" content={Astro.generator} />
 		<meta name="theme-color" content="#0b0706" />
-		<meta
-			name="description"
-			content={pageDescription}
-		/>
+		<meta name="description" content={pageDescription} />
 		<meta property="og:type" content="website" />
 		<meta property="og:title" content={pageTitle} />
 		<meta property="og:description" content={pageDescription} />
@@ -40,7 +41,11 @@ const webAppSchema = JSON.stringify({
 		{pageUrl ? <link rel="canonical" href={pageUrl} /> : null}
 		{pageUrl ? <meta property="og:url" content={pageUrl} /> : null}
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+		<link
+			rel="preconnect"
+			href="https://fonts.gstatic.com"
+			crossorigin="anonymous"
+		/>
 		<link
 			href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
 			rel="stylesheet"
@@ -50,5 +55,23 @@ const webAppSchema = JSON.stringify({
 	</head>
 	<body>
 		<RngChordsApp client:load />
+
+		<footer class="site-footer reveal" style="animation-delay: 600ms;">
+			<div class="site-footer__inner">
+				<img
+					src="https://img.jonathanrreed.com/personal/jonathan.avif"
+					alt="Jonathan Reed"
+					class="site-footer__avatar"
+					loading="lazy"
+					decoding="async"
+				/>
+				<div class="site-footer__text">
+					<p>
+						<strong translate="no">RNG Chords</strong> is a simple chord
+						generator by Jonathan R. Reed.
+					</p>
+				</div>
+			</div>
+		</footer>
 	</body>
 </html>
