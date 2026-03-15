@@ -76,18 +76,6 @@ Run the full check suite:
 bun run lint && bun run typecheck && bun test
 ```
 
-## Production site URL
-
-To make canonical and social metadata absolute in production, set:
-
-```sh
-SITE_URL=https://your-domain-here.com
-```
-
-RNG Chords reads `SITE_URL` from `astro.config.mjs`.
-
-## How to use it
-
 ### Start fast
 
 - Pick an instrument focus that matches how you play
