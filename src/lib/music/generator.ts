@@ -140,7 +140,7 @@ function guidedProgression(values: number[], config: GuidedDiceConfig, complexit
       complexity === 'basic'
         ? 'Easy mode keeps the shapes simpler and easier to grab.'
         : complexity === 'wild'
-          ? 'Spicy mode pushes toward brighter colors, denser tension, and more movement.'
+          ? 'Tension mode pushes toward brighter colors, denser tension, and more movement.'
           : 'Higher rolls add a little more color and motion.',
     ],
     rollSummary: values.map((value, index) => `Die ${index + 1} rolled ${value} on d${config.faceCounts[index] ?? 6}`),
@@ -196,7 +196,7 @@ function advancedProgression(
       complexity === 'basic'
         ? 'Easy mode keeps the harmony more direct and less crowded.'
         : complexity === 'wild'
-          ? 'Spicy mode leans into stranger colors, denser tension, and twistier motion.'
+          ? 'Tension mode leans into denser colors, stronger tension, and more motion.'
           : 'One die steered the path while the others added color, inversion, and pulse.',
     ],
     rollSummary: ADVANCED_PARAMETERS.map(

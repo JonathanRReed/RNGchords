@@ -63,8 +63,8 @@ const MODE_COPY: Record<Mode, { title: string; detail: string }> = {
     detail: 'Generate a playable progression fast and hear it back right away.',
   },
   advanced: {
-    title: 'Wild rolls',
-    detail: 'Use more parameters for stranger harmony, rhythm, and motion.',
+    title: 'Advanced rolls',
+    detail: 'Use more parameters for denser harmony, rhythm, and motion.',
   },
   manual: {
     title: 'Manual builder',
@@ -79,11 +79,11 @@ const CHORD_COMPLEXITY_COPY: Record<ChordComplexity, { label: string; detail: st
   },
   balanced: {
     label: 'Color',
-    detail: 'Familiar shapes with a little extra flavor.',
+    detail: 'Familiar shapes with added chord color.',
   },
   wild: {
-    label: 'Spicy',
-    detail: 'More color, more tension, more surprises.',
+    label: 'Tension',
+    detail: 'More color, more tension, and more harmonic motion.',
   },
 }
 
@@ -94,7 +94,7 @@ const MODE_OPTIONS = Object.keys(MODE_COPY) as Mode[]
 const SURPRISE_TEMPO_OPTIONS = [68, 74, 82, 88, 96, 104, 112, 120, 128, 136] as const
 const SECTION_IDS = ['A', 'B', 'C'] as const
 const DEFAULT_MANUAL_INPUT = 'Cmaj9, Am11, D7b9, G13'
-const DEFAULT_STATUS = 'Roll some chords, hear them back, and keep the bits you like.'
+const DEFAULT_STATUS = 'Roll chords, hear them back, and keep the strongest results.'
 const CREATIVE_SESSION_STORAGE_KEY = 'rng-chords-creative-session'
 
 const INITIAL_PRESET = PLAYGROUND_PRESETS[0]
@@ -177,7 +177,7 @@ function getAdvancedDieDetail(value: number, density: DiceContentDensity): strin
 function formatProgressionSource(source: string): string {
   const labels: Record<string, string> = {
     guided: 'Quick roll',
-    advanced: 'Wild roll',
+    advanced: 'Advanced roll',
     'manual-builder': 'Built by hand',
     'manual-text': 'Typed in',
   }
@@ -251,7 +251,7 @@ function createDelightMessage(progression: ProgressionResult): string | null {
   }
 
   if (progression.chords.some((chord) => chord.extensions.some((token) => ['b9', '#11', '13', 'b13'].includes(token)))) {
-    return 'Spicy keeper'
+    return 'High-tension keeper'
   }
 
   return 'That one has something'
@@ -525,7 +525,7 @@ export default function RngChordsApp() {
     if (mode === 'advanced') {
       const next = createAdvancedRoll(advancedConfig, nextComplexity)
       setAdvancedRoll(next)
-      commitProgression(next.progression, 'advanced', `${CHORD_COMPLEXITY_COPY[nextComplexity].label} mode is on. Here is a wilder roll.`)
+      commitProgression(next.progression, 'advanced', `${CHORD_COMPLEXITY_COPY[nextComplexity].label} mode is on. Here is a denser roll.`)
       return
     }
 
@@ -639,7 +639,7 @@ export default function RngChordsApp() {
       })
     })
 
-    updateProgressionChords(nextChords, keptChordSlots.length > 0 ? 'Rerolled the open slots and kept the pinned ones.' : 'Rerolled the whole idea.', [`Fresh pass around ${progression.keyCenter} with ${CHORD_COMPLEXITY_COPY[complexity].label.toLowerCase()} flavor.`])
+    updateProgressionChords(nextChords, keptChordSlots.length > 0 ? 'Rerolled the open slots and kept the pinned ones.' : 'Rerolled the whole idea.', [`New pass around ${progression.keyCenter} with ${CHORD_COMPLEXITY_COPY[complexity].label.toLowerCase()} harmony.`])
   }, [complexity, keptChordSlots, progression, updateProgressionChords])
 
   const saveSection = useCallback(() => {
@@ -1076,7 +1076,7 @@ export default function RngChordsApp() {
                 id={createModeTabId(entry)}
                 role="tab"
                 aria-selected={entry === mode}
-                aria-controls={createModePanelId(entry)}
+                aria-controls={entry === mode ? createModePanelId(entry) : undefined}
                 tabIndex={entry === mode ? 0 : -1}
               >
                 <span>{MODE_COPY[entry].title}</span>
@@ -1448,6 +1448,7 @@ export default function RngChordsApp() {
                     <button
                       key={option.value}
                       type="button"
+                      role="listitem"
                       className={option.value === diceStyleSettings.palette ? 'chip-button chip-button--active dice-swatch' : 'chip-button dice-swatch'}
                       onClick={() => updateDicePalette(option.value)}
                     >
@@ -1543,7 +1544,7 @@ export default function RngChordsApp() {
 
           {delightMessage ? (
             <div className="delight-banner" role="status">
-              <span>Little spark</span>
+              <span>Status</span>
               <strong>{delightMessage}</strong>
             </div>
           ) : null}
@@ -1617,7 +1618,7 @@ export default function RngChordsApp() {
                       <h3>{chord.label}</h3>
                     </div>
                     <button type="button" className="card-x" onClick={() => removeChord(index)} aria-label={`Remove ${chord.label}`}>
-                      ×
+                      <span aria-hidden="true">×</span>
                     </button>
                   </div>
                   <p>{describeChord(chord)}</p>
@@ -1664,7 +1665,7 @@ export default function RngChordsApp() {
               <div className="empty-rack">
                 <h3>Nothing here yet.</h3>
                 <p>Roll some chords or type your own to get started.</p>
-                <p className="empty-rack__hint">Try Campfire Glow for something friendly, Velvet Keys for softer color, or Surprise Me if you want a quick curveball.</p>
+                <p className="empty-rack__hint">Try Campfire Glow for a direct sound, Velvet Keys for softer color, or Surprise Me for a new preset.</p>
               </div>
             )}
           </div>

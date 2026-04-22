@@ -85,7 +85,7 @@ export const ADVANCED_PARAMETERS: AdvancedParameter[] = [
 
 export const ADVANCED_PARAMETER_LABELS: Record<AdvancedParameter, string> = {
   roots: 'Root path',
-  qualities: 'Quality flavor',
+  qualities: 'Quality color',
   extensions: 'Extension color',
   inversions: 'Inversion stack',
   rhythm: 'Rhythm pulse',
