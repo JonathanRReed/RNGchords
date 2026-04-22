@@ -1054,7 +1054,7 @@ export default function RngChordsApp() {
           <div className="workstation-brand">
             <span className="hero-strip__kicker">RNG Chords</span>
             <h1>Random chord ideas for guitar, piano, and songwriting.</h1>
-            <p>Roll chord progressions, hear them instantly, keep the parts you love, and export MIDI when an idea sticks.</p>
+            <p>Roll chord progressions, hear them instantly, keep the strongest chords, and export MIDI for arranging.</p>
             <div className="hero-actions">
               <button type="button" className="action-button" onClick={generateRandomChords}>
                 Roll First Idea
@@ -1114,7 +1114,7 @@ export default function RngChordsApp() {
             <div className="compact-panel-head">
               <span className="panel-title__eyebrow">Idea sets</span>
               <h2>{activePreset?.label ?? 'Free play'}</h2>
-              <p>{activePreset?.strapline ?? 'Roll something new and see what sticks.'}</p>
+              <p>{activePreset?.strapline ?? 'Roll a new progression and review the result.'}</p>
             </div>
 
             <div className="preset-bank preset-bank--compact">
