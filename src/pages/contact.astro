@@ -1,0 +1,120 @@
+---
+import "../styles/global.css";
+
+const pageTitle = "Contact RNG Chords | Jonathan R. Reed Music Tool";
+const pageDescription =
+	"Contact Jonathan R. Reed about RNG Chords, the free browser-based chord progression generator for songwriting and MIDI sketching.";
+const pageUrl = Astro.site ? new URL("/contact/", Astro.site).toString() : undefined;
+const socialImage = Astro.site
+	? new URL("/social-card.svg", Astro.site).toString()
+	: "/social-card.svg";
+const publishedDate = "2026-04-21";
+const structuredData = {
+	"@context": "https://schema.org",
+	"@type": "ContactPage",
+	name: "Contact RNG Chords",
+	description: pageDescription,
+	...(pageUrl ? { url: pageUrl } : {}),
+	datePublished: publishedDate,
+	dateModified: publishedDate,
+	author: {
+		"@type": "Person",
+		name: "Jonathan R. Reed",
+		url: "https://jonathanrreed.com",
+	},
+};
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="generator" content={Astro.generator} />
+		<meta name="theme-color" content="#0b0706" />
+		<meta name="description" content={pageDescription} />
+		<meta property="og:type" content="website" />
+		<meta property="og:title" content={pageTitle} />
+		<meta property="og:description" content={pageDescription} />
+		<meta property="og:image" content={socialImage} />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={pageTitle} />
+		<meta name="twitter:description" content={pageDescription} />
+		<meta name="twitter:image" content={socialImage} />
+		{pageUrl ? <link rel="canonical" href={pageUrl} /> : null}
+		{pageUrl ? <meta property="og:url" content={pageUrl} /> : null}
+		<link
+			href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+			rel="stylesheet"
+		/>
+		<title>{pageTitle}</title>
+		<script
+			is:inline
+			type="application/ld+json"
+			set:html={JSON.stringify(structuredData).replace(/</g, "\\u003c")}
+		/>
+	</head>
+	<body>
+		<main class="info-page">
+			<a class="info-page__back" href="/">RNG Chords</a>
+			<section class="info-page__panel panel-surface">
+				<p class="panel-title__eyebrow">Contact</p>
+				<h1>Contact Jonathan about RNG Chords.</h1>
+				<p>
+					For feedback, accessibility issues, music workflow requests, or
+					questions about RNG Chords, use Jonathan R. Reed's main contact page.
+				</p>
+				<p>
+					Helpful notes include the browser you used, whether playback started,
+					which instrument was selected, and whether the issue appeared while
+					rolling chords, locking a progression, copying text, or exporting MIDI.
+				</p>
+				<p>
+					Feedback is most useful when it explains the writing or practice
+					context. Examples include guitar sketching, piano practice, pop
+					topline writing, ambient harmony, loop building, or production work
+					where quick chord options are useful.
+				</p>
+				<p>
+					If a progression sounds wrong, include the mode, key, instrument,
+					tempo, and any locked chords. If an export fails, mention whether the
+					file was meant for a DAW, notation software, or a simple archive of the
+					idea. That context makes it easier to separate a musical preference
+					from a browser issue.
+				</p>
+				<p>
+					Accessibility notes are welcome. Helpful reports describe keyboard
+					navigation, focus order, control labels, playback controls, reduced
+					motion settings, or mobile screen behavior. The goal is for RNG Chords
+					to remain fast and usable during a writing session.
+				</p>
+				<p>
+					For theory or feature ideas, include the musical problem instead of
+					only naming a control. A note like "I need more borrowed chords in
+					minor keys" or "I want a cleaner way to practice ii V I movement" is
+					more actionable than a broad request for more randomness.
+				</p>
+				<p>
+					If you are using RNG Chords in a classroom, lesson, or rehearsal
+					setting, mention the instrument level and the type of exercise. That
+					helps keep future changes useful for beginners who need clear
+					progressions and advanced players who want more harmonic range.
+				</p>
+				<p>
+					Short, specific notes are enough. Useful feedback explains
+					what you expected, what happened, and how the result affected the
+					music task.
+				</p>
+				<p>
+					<a class="info-page__button" href="https://jonathanrreed.com/contact/">
+						Open Jonathan's contact page
+					</a>
+				</p>
+				<p class="info-page__meta">
+					Published <time datetime={publishedDate}>April 21, 2026</time>.
+				</p>
+			</section>
+		</main>
+	</body>
+</html>

@@ -2,7 +2,7 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
 
-const site = process.env.SITE_URL;
+const site = process.env.SITE_URL ?? 'https://rngchords.jonathanrreed.com';
 
 // https://astro.build/config
 export default defineConfig({
