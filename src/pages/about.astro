@@ -1,0 +1,141 @@
+---
+import "../styles/global.css";
+
+const pageTitle = "About RNG Chords | Jonathan R. Reed";
+const pageDescription =
+	"RNG Chords is a free browser-based chord progression generator by Jonathan R. Reed for songwriting, guitar, piano, and MIDI idea sketching.";
+const pageUrl = Astro.site ? new URL("/about/", Astro.site).toString() : undefined;
+const socialImage = Astro.site
+	? new URL("/social-card.svg", Astro.site).toString()
+	: "/social-card.svg";
+const publishedDate = "2026-04-21";
+const structuredData = {
+	"@context": "https://schema.org",
+	"@type": "AboutPage",
+	name: "About RNG Chords",
+	description: pageDescription,
+	...(pageUrl ? { url: pageUrl } : {}),
+	datePublished: publishedDate,
+	dateModified: publishedDate,
+	author: {
+		"@type": "Person",
+		name: "Jonathan R. Reed",
+		url: "https://jonathanrreed.com",
+	},
+	mainEntity: {
+		"@type": "SoftwareApplication",
+		name: "RNG Chords",
+		applicationCategory: "MusicApplication",
+		operatingSystem: "Any modern web browser",
+		isAccessibleForFree: true,
+		url: "https://rngchords.jonathanrreed.com/",
+		offers: {
+			"@type": "Offer",
+			price: 0,
+			priceCurrency: "USD",
+			availability: "https://schema.org/InStock",
+			category: "Free",
+		},
+		review: {
+			"@type": "Review",
+			author: {
+				"@type": "Person",
+				name: "Jonathan R. Reed",
+				url: "https://jonathanrreed.com",
+			},
+			reviewRating: {
+				"@type": "Rating",
+				ratingValue: 5,
+				bestRating: 5,
+				worstRating: 1,
+			},
+			reviewBody:
+				"A free browser-based chord progression generator for musicians who want fast ideas, instant playback, locked chords, and MIDI export without an account.",
+		},
+	},
+};
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="generator" content={Astro.generator} />
+		<meta name="theme-color" content="#0b0706" />
+		<meta name="description" content={pageDescription} />
+		<meta property="og:type" content="website" />
+		<meta property="og:title" content={pageTitle} />
+		<meta property="og:description" content={pageDescription} />
+		<meta property="og:image" content={socialImage} />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={pageTitle} />
+		<meta name="twitter:description" content={pageDescription} />
+		<meta name="twitter:image" content={socialImage} />
+		{pageUrl ? <link rel="canonical" href={pageUrl} /> : null}
+		{pageUrl ? <meta property="og:url" content={pageUrl} /> : null}
+		<link
+			href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+			rel="stylesheet"
+		/>
+		<title>{pageTitle}</title>
+		<script
+			is:inline
+			type="application/ld+json"
+			set:html={JSON.stringify(structuredData).replace(/</g, "\\u003c")}
+		/>
+	</head>
+	<body>
+		<main class="info-page">
+			<a class="info-page__back" href="/">RNG Chords</a>
+			<section class="info-page__panel panel-surface">
+				<p class="panel-title__eyebrow">About</p>
+				<h1>Random chord ideas for writing and practice.</h1>
+				<p>
+					RNG Chords is a free browser-based chord progression generator by
+					Jonathan R. Reed. It is built for guitarists, pianists, songwriters,
+					and producers who want quick harmonic prompts that can be heard,
+					edited, saved into idea slots, and exported as MIDI.
+				</p>
+				<p>
+					The generator keeps the workflow direct: roll a progression, lock
+					the chords that work, reroll the rest, preview the sound, and bring
+					the selected ideas into a writing session.
+				</p>
+				<p>
+					The app is meant for early composition work. Instead of searching
+					through theory charts or guessing at the next chord, a player can
+					generate a small set of usable options, keep the strongest choices,
+					and hear how the loop works on guitar, piano, or a production track.
+				</p>
+				<p>
+					RNG Chords also works as a practice prompt. A musician can roll a key,
+					try the progression by ear, transpose it, or export the MIDI into a DAW
+					for arranging. The goal is not to replace theory or taste. It is to
+					remove setup friction so the writer can make musical decisions sooner.
+				</p>
+				<p>
+					Each roll can be accepted, changed, or ignored. That keeps the tool
+					lightweight enough for a browser tab while still covering common
+					needs: a verse loop, a bridge change, a practice cycle, a backing
+					track, or a harmonic sketch before recording.
+				</p>
+				<p>
+					The interface avoids accounts and projects so the app can stay focused
+					on a single job. Open it, roll a few possibilities, keep the strongest
+					chords, and move the idea into the instrument or software where the
+					song is actually being written.
+				</p>
+				<p>
+					That makes RNG Chords suitable for short practice breaks, longer
+					writing sessions, and quick experiments when a track needs another
+					harmonic option.
+				</p>
+				<p class="info-page__meta">
+					Published <time datetime={publishedDate}>April 21, 2026</time>.
+				</p>
+			</section>
+		</main>
+	</body>
+</html>

@@ -1,0 +1,120 @@
+---
+import "../styles/global.css";
+
+const pageTitle = "RNG Chords Privacy Policy | Local Music Tool";
+const pageDescription =
+	"RNG Chords runs in your browser and does not require accounts, analytics, tracking pixels, or server-side storage for generated chord ideas.";
+const pageUrl = Astro.site ? new URL("/privacy/", Astro.site).toString() : undefined;
+const socialImage = Astro.site
+	? new URL("/social-card.svg", Astro.site).toString()
+	: "/social-card.svg";
+const publishedDate = "2026-04-21";
+const structuredData = {
+	"@context": "https://schema.org",
+	"@type": "PrivacyPolicy",
+	name: "RNG Chords Privacy Policy",
+	description: pageDescription,
+	...(pageUrl ? { url: pageUrl } : {}),
+	datePublished: publishedDate,
+	dateModified: publishedDate,
+	author: {
+		"@type": "Person",
+		name: "Jonathan R. Reed",
+		url: "https://jonathanrreed.com",
+	},
+};
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="generator" content={Astro.generator} />
+		<meta name="theme-color" content="#0b0706" />
+		<meta name="description" content={pageDescription} />
+		<meta property="og:type" content="website" />
+		<meta property="og:title" content={pageTitle} />
+		<meta property="og:description" content={pageDescription} />
+		<meta property="og:image" content={socialImage} />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={pageTitle} />
+		<meta name="twitter:description" content={pageDescription} />
+		<meta name="twitter:image" content={socialImage} />
+		{pageUrl ? <link rel="canonical" href={pageUrl} /> : null}
+		{pageUrl ? <meta property="og:url" content={pageUrl} /> : null}
+		<link
+			href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+			rel="stylesheet"
+		/>
+		<title>{pageTitle}</title>
+		<script
+			is:inline
+			type="application/ld+json"
+			set:html={JSON.stringify(structuredData).replace(/</g, "\\u003c")}
+		/>
+	</head>
+	<body>
+		<main class="info-page">
+			<a class="info-page__back" href="/">RNG Chords</a>
+			<section class="info-page__panel panel-surface">
+				<p class="panel-title__eyebrow">Privacy</p>
+				<h1>RNG Chords is a local, no-account music tool.</h1>
+				<p>
+					RNG Chords runs in your browser. The tool does not require an account,
+					does not ask for personal information, and does not send generated
+					chord ideas to an application database.
+				</p>
+				<p>
+					The site is hosted on Cloudflare Pages. Cloudflare may process routine
+					request metadata, such as IP address, user agent, and request time, to
+					deliver and protect the site. RNG Chords does not add analytics,
+					tracking pixels, advertising scripts, or newsletter signups.
+				</p>
+				<p>
+					Generated progressions, locked chord choices, playback settings, and
+					export decisions stay in the page session unless you use a browser or
+					device feature to save them. MIDI exports are created from the current
+					progression so you can move ideas into a DAW or notation workflow.
+				</p>
+				<p>
+					Because the app does not use accounts, it also does not provide cloud
+					sync, shared libraries, or recovery for deleted browser data. If a chord
+					idea matters, export it or copy it into your own notes before closing
+					the page.
+				</p>
+				<p>
+					Audio playback happens through browser audio features on your device.
+					The site does not need microphone access, does not record a performance,
+					and does not inspect other music software. Any sound you hear is
+					generated from the currently selected chord progression and instrument
+					settings in the page.
+				</p>
+				<p>
+					When you follow an outbound link, such as Jonathan's main contact
+					page, the destination site has its own hosting and privacy behavior.
+					RNG Chords keeps its own surface intentionally small: generate ideas,
+					play them, copy them, export them, and leave without creating an
+					account or profile.
+				</p>
+				<p>
+					The app does not ask for a name, email address, payment method, school,
+					band, publisher, or project title. It does not provide collaboration
+					features, public profiles, or shared progression libraries. Those
+					choices limit what the tool can recover later, but they also keep the
+					privacy model easy to understand.
+				</p>
+				<p>
+					If you save an exported MIDI file, copied progression, screenshot, or
+					browser note, that saved material is controlled by the software and
+					device you choose. Treat exported chord ideas like any other creative
+					file from a writing session.
+				</p>
+				<p class="info-page__meta">
+					Published <time datetime={publishedDate}>April 21, 2026</time>.
+				</p>
+			</section>
+		</main>
+	</body>
+</html>

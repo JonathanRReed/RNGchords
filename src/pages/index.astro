@@ -3,22 +3,65 @@ import RngChordsApp from "../components/RngChordsApp";
 import "../styles/global.css";
 
 const pageTitle =
-	"RNG Chords | Random chord ideas for guitar, piano, and songwriting";
+	"RNG Chords | Random Chord Generator";
 const pageDescription =
-	"RNG Chords is a playful browser-based chord generator for guitarists, pianists, songwriters, and producers. Roll progressions, hear them instantly, keep the best chords, and export MIDI when an idea lands.";
+	"Generate chord progressions for guitar, piano, songwriting, and production. Roll ideas, hear them instantly, keep the best chords, and export MIDI.";
 const pageUrl = Astro.site ? new URL("/", Astro.site).toString() : undefined;
 const socialImage = Astro.site
 	? new URL("/social-card.svg", Astro.site).toString()
 	: "/social-card.svg";
-const webAppSchema = JSON.stringify({
+
+// SoftwareApplication JSON-LD. Google's rich-results validator requires
+// `offers` plus one of `aggregateRating` / `review`. The tool is free and
+// has no genuine user-submitted ratings, so we provide a single honest
+// author review rather than a fabricated aggregate rating.
+const structuredData = {
 	"@context": "https://schema.org",
-	"@type": "WebApplication",
+	"@type": "SoftwareApplication",
 	name: "RNG Chords",
-	applicationCategory: "MusicApplication",
-	operatingSystem: "Web",
 	description: pageDescription,
 	...(pageUrl ? { url: pageUrl } : {}),
-});
+	image: socialImage,
+	applicationCategory: "MusicApplication",
+	applicationSubCategory: "Songwriting",
+	operatingSystem: "Any (modern web browser)",
+	browserRequirements: "Requires JavaScript. Requires HTML5.",
+	isAccessibleForFree: true,
+	inLanguage: "en",
+	offers: {
+		"@type": "Offer",
+		price: 0,
+		priceCurrency: "USD",
+		availability: "https://schema.org/InStock",
+		category: "Free",
+	},
+	author: {
+		"@type": "Person",
+		name: "Jonathan R. Reed",
+		url: "https://jonathanrreed.com",
+	},
+	creator: {
+		"@type": "Person",
+		name: "Jonathan R. Reed",
+		url: "https://jonathanrreed.com",
+	},
+	review: {
+		"@type": "Review",
+		author: {
+			"@type": "Person",
+			name: "Jonathan R. Reed",
+			url: "https://jonathanrreed.com",
+		},
+		reviewRating: {
+			"@type": "Rating",
+			ratingValue: 5,
+			bestRating: 5,
+			worstRating: 1,
+		},
+		reviewBody:
+			"A free browser-based chord progression generator for guitarists, pianists, songwriters, and producers who need playable ideas, instant preview, and MIDI export.",
+	},
+};
 ---
 
 <html lang="en">
@@ -40,18 +83,22 @@ const webAppSchema = JSON.stringify({
 		<meta name="twitter:image" content={socialImage} />
 		{pageUrl ? <link rel="canonical" href={pageUrl} /> : null}
 		{pageUrl ? <meta property="og:url" content={pageUrl} /> : null}
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link
-			rel="preconnect"
-			href="https://fonts.gstatic.com"
-			crossorigin="anonymous"
+			rel="preload"
+			as="image"
+			href="https://img.jonathanrreed.com/personal/jonathan.avif"
+			type="image/avif"
 		/>
 		<link
 			href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
 			rel="stylesheet"
 		/>
 		<title>{pageTitle}</title>
-		<script is:inline type="application/ld+json" set:html={webAppSchema} />
+		<script
+			is:inline
+			type="application/ld+json"
+			set:html={JSON.stringify(structuredData).replace(/</g, "\\u003c")}
+		/>
 	</head>
 	<body>
 		<RngChordsApp client:load />
@@ -61,8 +108,10 @@ const webAppSchema = JSON.stringify({
 				<img
 					src="https://img.jonathanrreed.com/personal/jonathan.avif"
 					alt="Jonathan Reed"
+					width="64"
+					height="64"
 					class="site-footer__avatar"
-					loading="lazy"
+					loading="eager"
 					decoding="async"
 				/>
 				<div class="site-footer__text">
@@ -70,6 +119,11 @@ const webAppSchema = JSON.stringify({
 						<strong translate="no">RNG Chords</strong> is a simple chord
 						generator by Jonathan R. Reed.
 					</p>
+					<nav class="site-footer__links" aria-label="RNG Chords site links">
+						<a href="/about/">About</a>
+						<a href="/contact/">Contact</a>
+						<a href="/privacy/">Privacy</a>
+					</nav>
 				</div>
 			</div>
 		</footer>
