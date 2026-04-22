@@ -200,6 +200,6 @@ export function rerollChordFromKey({
     inversion,
     rhythmBeats: chord.rhythmBeats,
     source: chord.source,
-    explanation: [`Rerolled from ${keyCenter} with ${qualityTag(quality).toLowerCase()} flavor.`],
+    explanation: [`Rerolled from ${keyCenter} with ${qualityTag(quality).toLowerCase()} color.`],
   })
 }
