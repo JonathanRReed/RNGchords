@@ -1,75 +1,45 @@
-import type { DiceMotionProfile } from './style'
+import { type Transition } from 'motion/react'
 
-type MotionKeyframes = Record<string, number[] | string[]>
-
-type DiceMotionTokens = {
-  duration: number
-  delayStep: number
-  lift: number
-  bounce: number
-  drift: number
-  rotateX: number
-  rotateY: number
+interface DieLandingState {
   rotate: number
-  shadowStretch: number
-  shadowOpacity: number
+  x: number
+  y: number
 }
 
-type DiceMotionPlan = {
-  bodyAnimate: MotionKeyframes
-  bodyTransition: Record<string, unknown>
-  shadowAnimate: MotionKeyframes
-  shadowTransition: Record<string, unknown>
-  metaAnimate: MotionKeyframes
-  metaTransition: Record<string, unknown>
+function getDieLandingState(value: number, faces: number, impulse: number): DieLandingState {
+  const seed = value * 37 + faces * 11 + impulse * 19
+  const sign = (seed & 1) === 0 ? 1 : -1
+  const rnd = ((seed * 2654435761) >>> 0) / 0xffffffff
+
+  return {
+    rotate: Math.round(rnd * 14 - 7) * sign,
+    x: Math.round((rnd * 10 - 5) * sign * 100) / 100,
+    y: Math.round((rnd * 6 - 3) * sign * 100) / 100,
+  }
 }
 
-const DICE_MOTION_TOKENS: Record<DiceMotionProfile, DiceMotionTokens> = {
-  subtle: {
-    duration: 0.96,
-    delayStep: 0.03,
-    lift: 34,
-    bounce: 5,
-    drift: 2,
-    rotateX: 96,
-    rotateY: 72,
-    rotate: 16,
-    shadowStretch: 1.08,
-    shadowOpacity: 0.24,
-  },
-  balanced: {
-    duration: 1.22,
-    delayStep: 0.05,
-    lift: 48,
-    bounce: 8,
-    drift: 3,
-    rotateX: 156,
-    rotateY: 126,
-    rotate: 28,
-    shadowStretch: 1.16,
-    shadowOpacity: 0.31,
-  },
-  dramatic: {
-    duration: 1.48,
-    delayStep: 0.07,
-    lift: 62,
-    bounce: 10,
-    drift: 4,
-    rotateX: 220,
-    rotateY: 188,
-    rotate: 40,
-    shadowStretch: 1.24,
-    shadowOpacity: 0.36,
-  },
+// Single premium dice roll animation.
+// Squash & stretch, heavy bounce, shadow shrink/grow, motion blur, wobble settle.
+
+export interface DiceMotionPlan {
+  bodyAnimate: any
+  bodyTransition: Transition
+  shadowAnimate: any
+  shadowTransition: Transition
+  metaAnimate: any
+  metaTransition: Transition
 }
 
-function getDieLandingState(value: number, faces: number, impulse: number): { x: number; y: number; rotate: number } {
-  const tiltOptions = [-5, -3, -1, 1, 3, 5]
-  const rotate = tiltOptions[(value + faces + impulse) % tiltOptions.length] ?? 0
-  const x = (((value * 5 + faces + impulse) % 7) - 3) * 0.8
-  const y = (((value * 3 + faces * 2 + impulse) % 5) - 2) * 0.65
-
-  return { x, y, rotate }
+const TOKENS = {
+  duration: 0.9,
+  delayStep: 0.06,
+  lift: 76,
+  bounce: 10,
+  rotateX: 720,
+  rotateY: 360,
+  rotate: 10,
+  shadowStretch: 1.3,
+  shadowOpacity: 0.4,
 }
 
 export function getDiceMotionPlan({
@@ -77,14 +47,12 @@ export function getDiceMotionPlan({
   faces,
   impulse,
   sequence,
-  profile,
   reducedMotion,
 }: {
   value: number
   faces: number
   impulse: number
   sequence: number
-  profile: DiceMotionProfile
   reducedMotion: boolean
 }): DiceMotionPlan {
   const landing = getDieLandingState(value, faces, impulse)
@@ -130,56 +98,64 @@ export function getDiceMotionPlan({
     }
   }
 
-  const tokens = DICE_MOTION_TOKENS[profile]
-  const tumbleSeed = value * 37 + faces * 11 + impulse * 19 + sequence * 13
-  const tumbleX = tokens.rotateX + (tumbleSeed % 80)
-  const tumbleY = tokens.rotateY + (tumbleSeed % 64)
-  const tumbleRotate = tokens.rotate + (tumbleSeed % 22)
-  const driftX = landing.x * tokens.drift
-  const duration = tokens.duration + sequence * tokens.delayStep
-  const delay = sequence * tokens.delayStep
+  const tokens = TOKENS
+  const seed = value * 37 + faces * 11 + impulse * 19 + sequence * 13
+  const rnd1 = ((seed * 2654435761) >>> 0) / 0xffffffff
+  const rnd2 = ((seed * 40503) >>> 0) / 0xffffffff
+  const sign = (seed & 1) === 0 ? 1 : -1
+
+  const totalRotateX = tokens.rotateX * sign
+  const totalRotateY = tokens.rotateY * -sign
+  const finalZ = landing.rotate + tokens.rotate * sign * (0.4 + rnd1 * 0.6)
+  const apexLift = tokens.lift * (0.9 + rnd2 * 0.25)
+
+  const duration = tokens.duration + rnd1 * 0.08
+  const delay = sequence * tokens.delayStep + rnd2 * 0.04
+
+  // Six keyframes: rest -> apex -> impact -> settle-up -> settle-down -> final
+  const times = [0, 0.38, 0.62, 0.78, 0.9, 1]
 
   return {
     bodyAnimate: {
-      x: [0, driftX * -0.18, driftX * 0.14, landing.x],
-      y: [0, -tokens.lift, tokens.bounce, landing.y],
-      rotate: [0, landing.rotate + tumbleRotate, landing.rotate - 2, landing.rotate],
-      rotateX: [0, tumbleX, 36 + (tumbleSeed % 18), 0],
-      rotateY: [0, -tumbleY, -18 + (tumbleSeed % 12), 0],
-      scale: [0.98, 0.92, 1.02, 1],
+      y: [0, -apexLift, tokens.bounce, -tokens.bounce * 0.28, 0, landing.y],
+      x: [0, landing.x * 0.3, landing.x * 0.6, landing.x * 0.85, landing.x * 0.95, landing.x],
+      rotateX: [0, totalRotateX * 0.55, totalRotateX * 0.88, totalRotateX * 0.96, totalRotateX, totalRotateX],
+      rotateY: [0, totalRotateY * 0.48, totalRotateY * 0.82, totalRotateY * 0.94, totalRotateY, totalRotateY],
+      rotateZ: [0, finalZ * 0.35, finalZ * 1.12, finalZ * 0.92, finalZ * 1.04, finalZ],
+      // Stretch at apex, heavy squash on impact, settle
+      scaleX: [1, 1.02, 1.08, 0.96, 1.01, 1],
+      scaleY: [1, 0.96, 0.9, 1.05, 0.99, 1],
     },
     bodyTransition: {
       duration,
       delay,
-      times: [0, 0.2, 0.76, 1],
-      ease: [0.18, 0.84, 0.22, 1],
-      rotateX: { duration, delay, times: [0, 0.18, 0.68, 1], ease: 'easeInOut' },
-      rotateY: { duration, delay, times: [0, 0.2, 0.7, 1], ease: 'easeInOut' },
-      scale: { duration, delay, times: [0, 0.18, 0.8, 1], ease: 'easeOut' },
+      times,
+      ease: [0.32, 0.72, 0.28, 1.05],
+      y: { duration, delay, times, ease: [0.22, 0.68, 0.32, 1] },
+      rotateX: { duration, delay, times, ease: 'linear' },
+      rotateY: { duration, delay, times, ease: 'linear' },
     },
     shadowAnimate: {
-      scaleX: [0.88, tokens.shadowStretch, 0.96, 1],
-      scaleY: [0.9, 1.02, 0.97, 1],
-      opacity: [0.22, tokens.shadowOpacity, 0.28, 0.24],
+      scaleX: [1, 0.72, tokens.shadowStretch, 1.04, 1.01, 1],
+      scaleY: [1, 0.74, tokens.shadowStretch * 0.92, 1.02, 1, 1],
+      opacity: [0.28, 0.06, tokens.shadowOpacity, 0.3, 0.26, 0.26],
     },
     shadowTransition: {
       duration,
       delay,
-      times: [0, 0.24, 0.82, 1],
+      times,
       ease: 'easeOut',
     },
     metaAnimate: {
-      opacity: [1, 0.18, 0.12, 1],
-      y: [0, -4, -2, 0],
-      scale: [1, 0.97, 0.96, 1],
-      filter: ['blur(0px)', 'blur(3px)', 'blur(2px)', 'blur(0px)'],
+      opacity: [1, 0.48, 0.92, 0.98, 1, 1],
+      filter: ['blur(0px)', 'blur(3px)', 'blur(0.8px)', 'blur(0px)', 'blur(0px)', 'blur(0px)'],
     },
     metaTransition: {
       duration,
       delay,
-      times: [0, 0.18, 0.78, 1],
+      times,
       ease: 'easeOut',
-      filter: { duration, delay, times: [0, 0.18, 0.78, 1], ease: 'easeOut' },
+      filter: { duration, delay, times, ease: 'easeOut' },
     },
   }
 }
