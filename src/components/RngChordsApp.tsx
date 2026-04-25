@@ -2,24 +2,9 @@ import { motion, useReducedMotion } from 'motion/react'
 import { startTransition, useCallback, useEffect, useMemo, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { createMidiBlob, downloadMidiBlob } from '../lib/audio/midi'
 import { PLAYBACK_INSTRUMENT_COPY, playProgression, preloadPlayback, previewChord, stopPlayback } from '../lib/audio/playback'
+import { playClick } from '../lib/audio/sfx'
 import { getDiceMotionPlan } from '../lib/dice/motion'
-import {
-  DEFAULT_DICE_STYLE_SETTINGS,
-  DICE_CONTENT_DENSITY_OPTIONS,
-  DICE_MOTION_OPTIONS,
-  DICE_STYLE_STORAGE_KEY,
-  DICE_THEME_OPTIONS,
-  coerceDiceStyleSettings,
-  getDiceAccentStyle,
-  getDiceTrayStyle,
-  getThemeDefaultPalette,
-  resolvePaletteOptions,
-  type DiceAccent,
-  type DiceContentDensity,
-  type DiceMotionProfile,
-  type DiceStyleSettings,
-  type DiceTheme,
-} from '../lib/dice/style'
+import { getDiceAccentStyle, getDiceTrayStyle, type DiceAccent } from '../lib/dice/style'
 import {
   ADVANCED_PARAMETER_LABELS,
   ADVANCED_PARAMETERS,
@@ -158,19 +143,11 @@ function formatDieChordValue(chord: ChordDescriptor): string {
   return `${chord.root}${qualityMap[chord.quality]}${compactExtension}${suffix}`
 }
 
-function getGuidedDieDetail(chord: ChordDescriptor, density: DiceContentDensity): string | undefined {
-  if (density === 'chord-only') {
-    return undefined
-  }
-
-  return chord.notes.slice(0, density === 'detailed' ? 4 : 3).join(' · ')
+function getGuidedDieDetail(chord: ChordDescriptor): string | undefined {
+  return chord.notes.slice(0, 3).join(' · ')
 }
 
-function getAdvancedDieDetail(value: number, density: DiceContentDensity): string | undefined {
-  if (density !== 'detailed') {
-    return undefined
-  }
-
+function getAdvancedDieDetail(value: number): string | undefined {
   return `rolled ${value}`
 }
 
@@ -272,7 +249,6 @@ function DieCard({
   footer,
   accent,
   sequence,
-  settings,
   reducedMotion,
   detail,
 }: {
@@ -282,7 +258,6 @@ function DieCard({
   footer: string
   accent: DiceAccent
   sequence: number
-  settings: DiceStyleSettings
   reducedMotion: boolean
   detail?: string
 }) {
@@ -292,29 +267,28 @@ function DieCard({
     faces: footer.length + 4,
     impulse,
     sequence,
-    profile: settings.motionProfile,
     reducedMotion,
   })
-  const accentStyle = getDiceAccentStyle(settings, accent) as CSSProperties
+  const accentStyle = getDiceAccentStyle(accent) as CSSProperties
 
   return (
     <div className="die-shell" style={{ perspective: 900 }}>
       <motion.div
         className="die-shell__shadow"
-        initial={false}
+        initial={{ scaleX: 1, scaleY: 1, opacity: 0.26 }}
         animate={motionPlan.shadowAnimate}
         transition={motionPlan.shadowTransition}
       />
-      <motion.div className="die-shell__body" initial={false} animate={motionPlan.bodyAnimate} transition={motionPlan.bodyTransition}>
+      <motion.div className="die-shell__body" initial={{ y: 0, x: 0, rotateX: 0, rotateY: 0, rotateZ: 0, rotate: 0, scaleX: 1, scaleY: 1 }} animate={motionPlan.bodyAnimate} transition={motionPlan.bodyTransition}>
         <div className={`die-card die-card--${accent}`} style={accentStyle}>
           <div className="die-card__shine" />
           <div className="die-card__bevel" />
           <div className="die-card__face">
-            <motion.div className="die-card__meta die-card__meta--top" initial={false} animate={motionPlan.metaAnimate} transition={motionPlan.metaTransition}>
+            <motion.div className="die-card__meta die-card__meta--top" initial={{ opacity: 1, filter: 'blur(0px)', y: 0, scale: 1 }} animate={motionPlan.metaAnimate} transition={motionPlan.metaTransition}>
               <span className="die-card__label">{label}</span>
             </motion.div>
             <strong className={typeof value === 'string' ? 'die-card__value die-card__value--text' : 'die-card__value'}>{value}</strong>
-            <motion.div className="die-card__meta die-card__meta--bottom" initial={false} animate={motionPlan.metaAnimate} transition={motionPlan.metaTransition}>
+            <motion.div className="die-card__meta die-card__meta--bottom" initial={{ opacity: 1, filter: 'blur(0px)', y: 0, scale: 1 }} animate={motionPlan.metaAnimate} transition={motionPlan.metaTransition}>
               {detail ? <span className="die-card__detail">{detail}</span> : null}
               <span className="die-card__faces">{footer}</span>
             </motion.div>
@@ -365,10 +339,11 @@ export default function RngChordsApp() {
   const [sections, setSections] = useState<Record<SectionId, SectionSnapshot | null>>(() => createEmptySections())
   const [delightMessage, setDelightMessage] = useState<string | null>(null)
   const [diceImpulse, setDiceImpulse] = useState(1)
-  const [diceStyleSettings, setDiceStyleSettings] = useState<DiceStyleSettings>(DEFAULT_DICE_STYLE_SETTINGS)
   const [status, setStatus] = useState(DEFAULT_STATUS)
   const [midiBusy, setMidiBusy] = useState(false)
   const [sessionReady, setSessionReady] = useState(false)
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false)
+  const [showMoreTransport, setShowMoreTransport] = useState(false)
 
   const displayProgression = useMemo(() => applyRhythmFeel(progression, rhythmFeel), [progression, rhythmFeel])
   const highlightedChordIndex = activeChordIndex ?? jamChordIndex
@@ -378,8 +353,7 @@ export default function RngChordsApp() {
     () => PLAYGROUND_PRESETS.find((preset) => preset.id === activePresetId) ?? PLAYGROUND_PRESETS[0],
     [activePresetId],
   )
-  const paletteOptions = useMemo(() => resolvePaletteOptions(diceStyleSettings.theme), [diceStyleSettings.theme])
-  const diceTrayStyle = useMemo(() => getDiceTrayStyle(diceStyleSettings) as CSSProperties, [diceStyleSettings])
+  const diceTrayStyle = useMemo(() => getDiceTrayStyle() as CSSProperties, [])
   const playerTips = useMemo(() => createPlayerTips(displayProgression, instrumentFocus), [displayProgression, instrumentFocus])
   const visiblePlayerTips = useMemo(() => playerTips.slice(0, 1), [playerTips])
   const practicePrompt = useMemo(() => createPracticePrompt(displayProgression, instrumentFocus), [displayProgression, instrumentFocus])
@@ -389,7 +363,7 @@ export default function RngChordsApp() {
         label: ADVANCED_PARAMETER_LABELS[parameter],
         value: advancedRoll.values[parameter],
         footer: `d${advancedConfig.faceCounts[parameter]}`,
-        detail: getAdvancedDieDetail(advancedRoll.values[parameter], diceStyleSettings.contentDensity),
+        detail: getAdvancedDieDetail(advancedRoll.values[parameter]),
         accent: (['ruby', 'brass', 'emerald', 'sapphire', 'ruby'][index] ?? 'ruby') as
           | DiceAccent,
       }))
@@ -397,7 +371,7 @@ export default function RngChordsApp() {
         label: `Chord ${index + 1}`,
         value: formatDieChordValue(chord),
         footer: mode === 'guided' ? `d${guidedFaces[index] ?? 6}` : RHYTHM_LABELS[chord.rhythmBeats] ?? `${chord.rhythmBeats} beats`,
-        detail: getGuidedDieDetail(chord, diceStyleSettings.contentDensity),
+        detail: getGuidedDieDetail(chord),
         accent: (['ruby', 'brass', 'emerald', 'sapphire'][index % 4] ?? 'ruby') as
           | DiceAccent,
       }))
@@ -696,32 +670,6 @@ export default function RngChordsApp() {
     setBuilder((current) => ({ ...current, [key]: value }))
   }, [])
 
-  const updateDiceTheme = useCallback((theme: DiceTheme) => {
-    setDiceStyleSettings((current) => ({
-      ...current,
-      theme,
-      palette: resolvePaletteOptions(theme).some((option) => option.value === current.palette)
-        ? current.palette
-        : getThemeDefaultPalette(theme),
-    }))
-  }, [])
-
-  const updateDiceMotionProfile = useCallback((motionProfile: DiceMotionProfile) => {
-    setDiceStyleSettings((current) => ({ ...current, motionProfile }))
-  }, [])
-
-  const updateDiceContentDensity = useCallback((contentDensity: DiceContentDensity) => {
-    setDiceStyleSettings((current) => ({ ...current, contentDensity }))
-  }, [])
-
-  const updateDicePalette = useCallback((palette: DiceStyleSettings['palette']) => {
-    setDiceStyleSettings((current) => ({ ...current, palette }))
-  }, [])
-
-  const resetDiceStyleSettings = useCallback(() => {
-    setDiceStyleSettings(DEFAULT_DICE_STYLE_SETTINGS)
-  }, [])
-
   const appendBuilderChord = useCallback((replace = false) => {
     const extensions = [builder.extensionPrimary, ...builder.colorTones].filter(Boolean) as ChordDescriptor['extensions']
     const chord = createChordDescriptor({
@@ -909,6 +857,29 @@ export default function RngChordsApp() {
     }
   }, [])
 
+  // Tactile click SFX on any button press. Single delegated listener so
+  // we do not need to touch every button call site.
+  useEffect(() => {
+    if (typeof window === 'undefined' || reduceMotionEnabled) {
+      return
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as HTMLElement | null
+      if (!target) {
+        return
+      }
+      const interactive = target.closest('button, [role="tab"], .preset-card, .chip-button, .note-pill') as HTMLElement | null
+      if (!interactive) {
+        return
+      }
+      playClick(0.7)
+    }
+
+    window.addEventListener('pointerdown', handlePointerDown, { passive: true })
+    return () => window.removeEventListener('pointerdown', handlePointerDown)
+  }, [reduceMotionEnabled])
+
   useEffect(() => {
     if (typeof window === 'undefined') {
       return
@@ -960,22 +931,6 @@ export default function RngChordsApp() {
       console.error('Creative session restore failed', error)
     } finally {
       setSessionReady(true)
-    }
-  }, [])
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return
-    }
-
-    try {
-      const saved = window.localStorage.getItem(DICE_STYLE_STORAGE_KEY)
-
-      if (saved) {
-        setDiceStyleSettings(coerceDiceStyleSettings(JSON.parse(saved)))
-      }
-    } catch (error) {
-      console.error('Dice style restore failed', error)
     }
   }, [])
 
@@ -1032,18 +987,6 @@ export default function RngChordsApp() {
     tempo,
   ])
 
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      return
-    }
-
-    try {
-      window.localStorage.setItem(DICE_STYLE_STORAGE_KEY, JSON.stringify(diceStyleSettings))
-    } catch (error) {
-      console.error('Dice style save failed', error)
-    }
-  }, [diceStyleSettings])
-
   return (
     <>
       <a className="skip-link" href="#main-content">Skip to the chord generator</a>
@@ -1055,34 +998,18 @@ export default function RngChordsApp() {
             <span className="hero-strip__kicker">RNG Chords</span>
             <h1>Random chord ideas for guitar, piano, and songwriting.</h1>
             <p>Roll chord progressions, hear them instantly, keep the strongest chords, and export MIDI for arranging.</p>
-            <div className="hero-actions">
-              <button type="button" className="action-button" onClick={generateRandomChords}>
-                Roll First Idea
-              </button>
-              <button type="button" className="pill-button pill-button--bright" onClick={surpriseMe}>
-                Surprise Me
-              </button>
-            </div>
           </div>
 
-          <div className="mode-rail workstation-modes" role="tablist" aria-label="Idea generation modes">
-            {MODE_OPTIONS.map((entry) => (
-              <button
-                key={entry}
-                type="button"
-                className={entry === mode ? 'mode-pill mode-pill--active' : 'mode-pill'}
-                onClick={() => setMode(entry)}
-                onKeyDown={(event) => handleModeTabKeyDown(event, entry)}
-                id={createModeTabId(entry)}
-                role="tab"
-                aria-selected={entry === mode}
-                aria-controls={entry === mode ? createModePanelId(entry) : undefined}
-                tabIndex={entry === mode ? 0 : -1}
-              >
-                <span>{MODE_COPY[entry].title}</span>
-                <small>{MODE_COPY[entry].detail}</small>
-              </button>
-            ))}
+          <div className="workstation-topbar__actions">
+            <button
+              type="button"
+              className="pill-button pill-button--muted settings-trigger"
+              onClick={() => setIsSettingsOpen(true)}
+              aria-expanded={isSettingsOpen}
+            >
+              <span aria-hidden="true">⚙</span>
+              <span>Customize</span>
+            </button>
           </div>
         </div>
 
@@ -1108,8 +1035,60 @@ export default function RngChordsApp() {
         </div>
         </section>
 
-        <main id="main-content" className="tabletop-grid tabletop-grid--workstation" tabIndex={-1}>
-        <section className="control-bank control-bank--compact panel-surface reveal" style={{ animationDelay: '200ms' }}>
+        {isSettingsOpen ? (
+          <div
+            className="settings-drawer__backdrop"
+            onClick={() => setIsSettingsOpen(false)}
+            aria-hidden="true"
+          />
+        ) : null}
+        {isSettingsOpen ? (
+        <aside
+          id="settings-drawer"
+          className="settings-drawer settings-drawer--open"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Customize RNG Chords"
+        >
+          <div className="settings-drawer__head">
+            <div>
+              <span className="panel-title__eyebrow">Customize</span>
+              <h2>Settings</h2>
+            </div>
+            <button
+              type="button"
+              className="pill-button pill-button--muted"
+              onClick={() => setIsSettingsOpen(false)}
+              aria-label="Close settings"
+            >
+              Close
+            </button>
+          </div>
+
+          <div
+            className="mode-rail settings-drawer__modes"
+            role="tablist"
+            aria-label="Idea generation modes"
+          >
+            {MODE_OPTIONS.map((entry) => (
+              <button
+                key={entry}
+                type="button"
+                className={entry === mode ? 'mode-pill mode-pill--active' : 'mode-pill'}
+                onClick={() => setMode(entry)}
+                onKeyDown={(event) => handleModeTabKeyDown(event, entry)}
+                id={createModeTabId(entry)}
+                role="tab"
+                aria-selected={entry === mode}
+                tabIndex={entry === mode ? 0 : -1}
+              >
+                <span>{MODE_COPY[entry].title}</span>
+                <small>{MODE_COPY[entry].detail}</small>
+              </button>
+            ))}
+          </div>
+
+          <section className="control-bank control-bank--compact">
           <div className="stack-block stack-block--dense">
             <div className="compact-panel-head">
               <span className="panel-title__eyebrow">Idea sets</span>
@@ -1388,77 +1367,15 @@ export default function RngChordsApp() {
           </div>
         </section>
 
+        </aside>
+        ) : null}
+
+        <main id="main-content" className="tabletop-grid tabletop-grid--stage" tabIndex={-1}>
         <section className="stage-bank panel-surface panel-surface--tray reveal" style={{ animationDelay: '300ms' }}>
           <div className="compact-panel-head compact-panel-head--tray">
             <span className="panel-title__eyebrow">Dice</span>
             <h2>Idea tray</h2>
             <p>Roll here, keep what sounds good, and hit play if you want to hear it.</p>
-          </div>
-          <div className="dice-lab">
-            <div className="dice-lab__head">
-              <div>
-                <span className="panel-title__eyebrow">Dice style</span>
-                <strong>Quick dice tweaks</strong>
-              </div>
-              <button type="button" className="pill-button pill-button--muted" onClick={resetDiceStyleSettings}>
-                Reset style
-              </button>
-            </div>
-            <div className="dice-lab__grid">
-              <label className="control-field">
-                <span>Theme</span>
-                <select name="dice-theme" value={diceStyleSettings.theme} onChange={(event) => updateDiceTheme(event.target.value as DiceTheme)}>
-                  {DICE_THEME_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="control-field">
-                <span>Motion</span>
-                <select name="dice-motion" value={diceStyleSettings.motionProfile} onChange={(event) => updateDiceMotionProfile(event.target.value as DiceMotionProfile)}>
-                  {DICE_MOTION_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="control-field">
-                <span>On each die</span>
-                <select name="dice-density" value={diceStyleSettings.contentDensity} onChange={(event) => updateDiceContentDensity(event.target.value as DiceContentDensity)}>
-                  {DICE_CONTENT_DENSITY_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <div className="dice-lab__palette">
-              <span>Color set</span>
-              <div className="dice-lab__swatches" role="list">
-                {paletteOptions.map((option) => {
-                  const swatchStyle = {
-                    background: `linear-gradient(90deg, ${getDiceAccentStyle({ ...diceStyleSettings, palette: option.value }, 'ruby')['--die-surface-top']}, ${getDiceAccentStyle({ ...diceStyleSettings, palette: option.value }, 'brass')['--die-surface-top']}, ${getDiceAccentStyle({ ...diceStyleSettings, palette: option.value }, 'emerald')['--die-surface-top']}, ${getDiceAccentStyle({ ...diceStyleSettings, palette: option.value }, 'sapphire')['--die-surface-top']})`,
-                  } as CSSProperties
-
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      role="listitem"
-                      className={option.value === diceStyleSettings.palette ? 'chip-button chip-button--active dice-swatch' : 'chip-button dice-swatch'}
-                      onClick={() => updateDicePalette(option.value)}
-                    >
-                      <span className="dice-swatch__preview" style={swatchStyle} aria-hidden="true" />
-                      <span>{option.label}</span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
           </div>
           <div className="tray-toolbar">
             <button type="button" className="action-button" onClick={generateRandomChords}>
@@ -1471,7 +1388,7 @@ export default function RngChordsApp() {
           <div className="dice-tray" style={diceTrayStyle}>
             {stageDice.map((die, index) => (
               <DieCard
-                key={`${die.label}-${die.footer}-${die.value}`}
+                key={`${die.label}-${die.footer}-${die.value}-${diceImpulse}`}
                 impulse={diceImpulse}
                 label={die.label}
                 value={die.value}
@@ -1479,7 +1396,6 @@ export default function RngChordsApp() {
                 detail={die.detail}
                 accent={die.accent}
                 sequence={index}
-                settings={diceStyleSettings}
                 reducedMotion={reduceMotionEnabled}
               />
             ))}
@@ -1549,38 +1465,19 @@ export default function RngChordsApp() {
             </div>
           ) : null}
 
-          <div className="transport-strip">
-            <label className="transport-field">
-              <span>Instrument</span>
-              <select
-                name="playback-instrument"
-                value={playbackInstrument}
-                onChange={(event) => setPlaybackInstrument(event.target.value as PlaybackInstrument)}
-              >
-                {(Object.keys(PLAYBACK_INSTRUMENT_COPY) as PlaybackInstrument[]).map((entry) => (
-                  <option key={entry} value={entry}>
-                    {PLAYBACK_INSTRUMENT_COPY[entry].label}
-                  </option>
-                ))}
-              </select>
-              <strong>{PLAYBACK_INSTRUMENT_COPY[playbackInstrument].detail}</strong>
-            </label>
-            <label className="transport-field">
-              <span>Feel</span>
-              <select name="rhythm-feel" value={rhythmFeel} onChange={(event) => setRhythmFeel(event.target.value as RhythmFeel)}>
-                {(Object.keys(RHYTHM_FEEL_COPY) as RhythmFeel[]).map((entry) => (
-                  <option key={entry} value={entry}>
-                    {RHYTHM_FEEL_COPY[entry].label}
-                  </option>
-                ))}
-              </select>
-              <strong>{RHYTHM_FEEL_COPY[rhythmFeel].detail}</strong>
-            </label>
-            <label className="transport-field">
-              <span>Tempo</span>
-              <input name="transport-tempo" type="range" min={58} max={164} value={tempo} onChange={(event) => setTempo(Number(event.target.value))} />
-              <strong>{tempo} BPM</strong>
-            </label>
+          <div className="transport-strip transport-strip--primary">
+            <button
+              type="button"
+              className="pill-button pill-button--bright transport-primary"
+              onPointerEnter={preloadPlayback}
+              onFocus={preloadPlayback}
+              onClick={startPlayback}
+            >
+              {playing ? 'Replay' : 'Play'}
+            </button>
+            <button type="button" className="pill-button" onClick={haltPlayback}>
+              Stop
+            </button>
             <button
               type="button"
               className={loopEnabled ? 'chip-button chip-button--active' : 'chip-button'}
@@ -1589,19 +1486,57 @@ export default function RngChordsApp() {
             >
               Loop {loopEnabled ? 'On' : 'Off'}
             </button>
-            <button type="button" className="pill-button pill-button--bright" onPointerEnter={preloadPlayback} onFocus={preloadPlayback} onClick={startPlayback}>
-              {playing ? 'Replay' : 'Play'}
-            </button>
-            <button type="button" className="pill-button" onClick={haltPlayback}>
-              Stop
-            </button>
-            <button type="button" className="pill-button" onClick={exportMidi} disabled={midiBusy}>
-              {midiBusy ? 'Exporting…' : 'Export MIDI'}
-            </button>
-            <button type="button" className="pill-button pill-button--muted" onClick={clearProgression}>
-              Clear Idea
+            <label className="transport-field transport-field--tempo">
+              <span>Tempo</span>
+              <input name="transport-tempo" type="range" min={58} max={164} value={tempo} onChange={(event) => setTempo(Number(event.target.value))} />
+              <strong>{tempo} BPM</strong>
+            </label>
+            <button
+              type="button"
+              className="pill-button pill-button--muted transport-more"
+              onClick={() => setShowMoreTransport((current) => !current)}
+              aria-expanded={showMoreTransport}
+            >
+              {showMoreTransport ? 'Fewer options' : 'More options'}
             </button>
           </div>
+
+          {showMoreTransport ? (
+            <div id="transport-more" className="transport-strip transport-strip--secondary">
+              <label className="transport-field">
+                <span>Instrument</span>
+                <select
+                  name="playback-instrument"
+                  value={playbackInstrument}
+                  onChange={(event) => setPlaybackInstrument(event.target.value as PlaybackInstrument)}
+                >
+                  {(Object.keys(PLAYBACK_INSTRUMENT_COPY) as PlaybackInstrument[]).map((entry) => (
+                    <option key={entry} value={entry}>
+                      {PLAYBACK_INSTRUMENT_COPY[entry].label}
+                    </option>
+                  ))}
+                </select>
+                <strong>{PLAYBACK_INSTRUMENT_COPY[playbackInstrument].detail}</strong>
+              </label>
+              <label className="transport-field">
+                <span>Feel</span>
+                <select name="rhythm-feel" value={rhythmFeel} onChange={(event) => setRhythmFeel(event.target.value as RhythmFeel)}>
+                  {(Object.keys(RHYTHM_FEEL_COPY) as RhythmFeel[]).map((entry) => (
+                    <option key={entry} value={entry}>
+                      {RHYTHM_FEEL_COPY[entry].label}
+                    </option>
+                  ))}
+                </select>
+                <strong>{RHYTHM_FEEL_COPY[rhythmFeel].detail}</strong>
+              </label>
+              <button type="button" className="pill-button" onClick={exportMidi} disabled={midiBusy}>
+                {midiBusy ? 'Exporting…' : 'Export MIDI'}
+              </button>
+              <button type="button" className="pill-button pill-button--muted" onClick={clearProgression}>
+                Clear Idea
+              </button>
+            </div>
+          ) : null}
 
           <p id="jam-shortcuts" className="jam-hint">Keyboard shortcuts: ← → preview chords · Enter replay selected chord · Space play or stop</p>
 

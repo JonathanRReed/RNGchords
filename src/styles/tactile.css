@@ -1,0 +1,187 @@
+/* Tactile / skeuomorphic layer.
+ * Minimal, restrained additions that sit on top of global.css:
+ *   - soft material textures on the shell, panels, and felt tray
+ *   - polished brass slider thumb + engraved track
+ *   - real physical "press" travel on buttons
+ * No stitched borders, no corner pips, no engraved-text dimming.
+ * Keep it tasteful.
+ */
+
+:root {
+  /* Static fractal-noise textures as inline SVG data URIs. Alpha in
+   * feColorMatrix controls intensity; kept low so the grain stays subtle. */
+  --tex-felt: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='2' stitchTiles='stitch' seed='4'/><feColorMatrix values='0 0 0 0 0.04 0 0 0 0 0.2 0 0 0 0 0.16 0 0 0 0.28 0'/></filter><rect width='100%25' height='100%25' filter='url(%23f)'/></svg>");
+  --tex-leather: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='l'><feTurbulence type='fractalNoise' baseFrequency='0.6' numOctaves='2' stitchTiles='stitch' seed='7'/><feColorMatrix values='0 0 0 0 0.1 0 0 0 0 0.05 0 0 0 0 0.035 0 0 0 0.22 0'/></filter><rect width='100%25' height='100%25' filter='url(%23l)'/></svg>");
+  --tex-grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='g'><feTurbulence type='fractalNoise' baseFrequency='2.8' numOctaves='2' stitchTiles='stitch' seed='2'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 0.95 0 0 0 0 0.85 0 0 0 0.05 0'/></filter><rect width='100%25' height='100%25' filter='url(%23g)'/></svg>");
+}
+
+/* -------- Shell: faint grain so the background does not feel like flat hex ---------- */
+.rng-app-shell {
+  background-image:
+    var(--tex-grain),
+    radial-gradient(circle at 50% 100%, rgba(54, 29, 18, 0.5), transparent 40%),
+    linear-gradient(180deg, rgba(54, 29, 18, 0.98), rgba(30, 16, 12, 0.99) 70%, rgba(18, 11, 9, 0.99));
+  background-blend-mode: soft-light, normal, normal;
+  background-size: 160px 160px, auto, auto;
+}
+
+/* -------- Leather panels: faint grain only ---------- */
+.panel-surface {
+  background-image:
+    var(--tex-leather),
+    var(--panel-leather);
+  background-blend-mode: overlay, normal;
+  background-size: 300px 300px, auto;
+}
+
+.panel-surface--tray {
+  background-image:
+    var(--tex-felt),
+    radial-gradient(circle at 50% 20%, rgba(92, 148, 126, 0.22), transparent 34%),
+    linear-gradient(180deg, rgba(13, 49, 41, 0.98), rgba(7, 20, 20, 1));
+  background-blend-mode: overlay, normal, normal;
+  background-size: 220px 220px, auto, auto;
+}
+
+/* -------- Dice tray: real felt weave, no extra borders ---------- */
+.dice-tray {
+  background-image:
+    var(--tex-felt),
+    var(--dice-tray-background);
+  background-blend-mode: overlay, normal;
+  background-size: 220px 220px, 200% 200%;
+}
+
+/* -------- Dice: keep the original bright text + richer shadow ---------- */
+.die-card {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 221, 0.38),
+    inset 0 -6px 14px rgba(0, 0, 0, 0.42),
+    0 22px 34px rgba(0, 0, 0, 0.42),
+    0 3px 0 rgba(255, 247, 232, 0.05),
+    0 0 0 1px rgba(0, 0, 0, 0.25);
+}
+
+/* -------- Buttons: grain + true physical depression ---------- */
+.pill-button,
+.action-button,
+.chip-button,
+.card-x {
+  background-image:
+    var(--tex-grain),
+    linear-gradient(180deg, rgba(101, 43, 31, 0.94), rgba(42, 17, 15, 0.98));
+  background-blend-mode: soft-light, normal;
+  background-size: 160px 160px, auto;
+}
+
+.action-button {
+  background-image:
+    var(--tex-grain),
+    linear-gradient(180deg, rgba(222, 172, 96, 0.96), rgba(140, 89, 40, 0.99));
+  background-blend-mode: soft-light, normal;
+  background-size: 160px 160px, auto;
+}
+
+.action-button--secondary,
+.pill-button--bright,
+.chip-button--active {
+  background-image:
+    var(--tex-grain),
+    linear-gradient(180deg, rgba(238, 205, 141, 0.94), rgba(155, 109, 57, 0.98));
+  background-blend-mode: soft-light, normal;
+  background-size: 160px 160px, auto;
+}
+
+.pill-button--muted {
+  background-image:
+    var(--tex-grain),
+    linear-gradient(180deg, rgba(43, 35, 35, 0.96), rgba(18, 14, 15, 0.98));
+  background-blend-mode: soft-light, normal;
+  background-size: 160px 160px, auto;
+}
+
+.pill-button:hover,
+.action-button:hover,
+.chip-button:hover,
+.card-x:hover {
+  filter: brightness(1.04);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 244, 221, 0.22),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.22),
+    0 16px 26px rgba(0, 0, 0, 0.3),
+    0 0 22px rgba(216, 181, 121, 0.12);
+}
+
+/* Real press: button visibly sinks, shadow collapses, inner goes concave. */
+.pill-button:active,
+.action-button:active,
+.chip-button:active,
+.card-x:active,
+.preset-card:active,
+.mode-pill:active {
+  transform: translateY(2px) scale(0.992);
+  transition-duration: 70ms;
+  box-shadow:
+    inset 0 3px 6px rgba(0, 0, 0, 0.5),
+    inset 0 -1px 0 rgba(255, 239, 209, 0.06),
+    0 2px 4px rgba(0, 0, 0, 0.28);
+  filter: brightness(0.94);
+}
+
+/* -------- Slider: polished brass knob in an engraved channel ---------- */
+.control-field input[type='range']::-webkit-slider-thumb,
+.transport-field input[type='range']::-webkit-slider-thumb {
+  background:
+    radial-gradient(circle at 32% 28%, #fff1d0 0 10%, #e8b873 35%, #8a5a28 75%, #3e2410 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 247, 220, 0.5),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.4),
+    0 6px 10px rgba(0, 0, 0, 0.45);
+}
+
+.control-field input[type='range']::-moz-range-thumb,
+.transport-field input[type='range']::-moz-range-thumb {
+  background:
+    radial-gradient(circle at 32% 28%, #fff1d0 0 10%, #e8b873 35%, #8a5a28 75%, #3e2410 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 247, 220, 0.5),
+    inset 0 -2px 3px rgba(0, 0, 0, 0.4),
+    0 6px 10px rgba(0, 0, 0, 0.45);
+}
+
+.control-field input[type='range'],
+.transport-field input[type='range'] {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.1)),
+    linear-gradient(90deg, rgba(72, 31, 26, 0.96), rgba(184, 136, 75, 0.65));
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.5),
+    inset 0 -1px 0 rgba(255, 230, 180, 0.08);
+}
+
+/* -------- Note pills: beveled gemstone feel ---------- */
+.note-pill {
+  background-image:
+    radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.18), transparent 40%),
+    linear-gradient(180deg, rgba(21, 67, 59, 0.98), rgba(8, 27, 25, 0.98));
+  box-shadow:
+    inset 0 1px 0 rgba(221, 255, 244, 0.16),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.note-pill:hover {
+  filter: brightness(1.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .pill-button:active,
+  .action-button:active,
+  .chip-button:active,
+  .card-x:active,
+  .preset-card:active,
+  .mode-pill:active {
+    transform: none;
+  }
+}
