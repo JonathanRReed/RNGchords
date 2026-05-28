@@ -8,6 +8,9 @@ const site = process.env.SITE_URL ?? 'https://rngchords.jonathanrreed.com';
 export default defineConfig({
   integrations: [react()],
   site,
+  build: {
+    inlineStylesheets: 'never',
+  },
   server: {
     host: 'localhost',
     port: 4321,
