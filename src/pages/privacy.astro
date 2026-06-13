@@ -1,5 +1,6 @@
 ---
 import "../styles/global.css";
+import "../styles/tactile.css";
 
 const pageTitle = "RNG Chords Privacy Policy | Local Music Tool";
 const pageDescription =
@@ -28,6 +29,7 @@ const structuredData = {
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
+		<script is:inline>try{var t=JSON.parse(localStorage.getItem("rng-chords-creative-session")||"{}").tableTheme;if(t)document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
 		<link rel="icon" href="/favicon.ico" sizes="any">
 		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
 		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -47,6 +49,8 @@ const structuredData = {
 		<meta name="twitter:image" content={socialImage} />
 		{pageUrl ? <link rel="canonical" href={pageUrl} /> : null}
 		{pageUrl ? <meta property="og:url" content={pageUrl} /> : null}
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
 			href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
 			rel="stylesheet"

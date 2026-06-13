@@ -1,10 +1,10 @@
 import { motion, useReducedMotion } from 'motion/react'
-import { startTransition, useCallback, useEffect, useMemo, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react'
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent as ReactKeyboardEvent } from 'react'
 import { createMidiBlob, downloadMidiBlob } from '../lib/audio/midi'
 import { PLAYBACK_INSTRUMENT_COPY, playProgression, preloadPlayback, previewChord, stopPlayback } from '../lib/audio/playback'
 import { playClick } from '../lib/audio/sfx'
 import { getDiceMotionPlan } from '../lib/dice/motion'
-import { getDiceAccentStyle, getDiceTrayStyle, type DiceAccent } from '../lib/dice/style'
+import { getDiceAccentStyle, type DiceAccent } from '../lib/dice/style'
 import {
   ADVANCED_PARAMETER_LABELS,
   ADVANCED_PARAMETERS,
@@ -41,6 +41,16 @@ import type { PlaybackInstrument } from '../lib/audio/playback'
 import type { InstrumentFocus, PlaygroundPreset } from '../lib/music/playground'
 
 type Mode = 'guided' | 'advanced' | 'manual'
+
+type TableTheme = 'emerald' | 'crimson' | 'sapphire' | 'amethyst'
+
+const TABLE_THEMES: { id: TableTheme; label: string; detail: string; swatch: string }[] = [
+  { id: 'emerald', label: 'Emerald Felt', detail: 'Classic craps-table green', swatch: 'linear-gradient(135deg, #2a8466, #0e3a2e)' },
+  { id: 'crimson', label: 'Crimson Royale', detail: 'High-roller garnet red', swatch: 'linear-gradient(135deg, #a82e36, #3a0e12)' },
+  { id: 'sapphire', label: 'Midnight Sapphire', detail: 'Cool indigo high-limit room', swatch: 'linear-gradient(135deg, #4062b4, #0c1830)' },
+  { id: 'amethyst', label: 'Amethyst Velvet', detail: 'Plush violet velvet', swatch: 'linear-gradient(135deg, #8c50b4, #1a0a2e)' },
+]
+const TABLE_THEME_IDS = TABLE_THEMES.map((theme) => theme.id) as TableTheme[]
 
 const MODE_COPY: Record<Mode, { title: string; detail: string }> = {
   guided: {
@@ -147,10 +157,6 @@ function getGuidedDieDetail(chord: ChordDescriptor): string | undefined {
   return chord.notes.slice(0, 3).join(' · ')
 }
 
-function getAdvancedDieDetail(value: number): string | undefined {
-  return `rolled ${value}`
-}
-
 function formatProgressionSource(source: string): string {
   const labels: Record<string, string> = {
     guided: 'Quick roll',
@@ -200,6 +206,7 @@ type CreativeSessionState = {
   rhythmFeel: RhythmFeel
   sections: Record<SectionId, SectionSnapshot | null>
   showTheory: boolean
+  tableTheme: TableTheme
   tempo: number
 }
 
@@ -279,6 +286,13 @@ function DieCard({
         animate={motionPlan.shadowAnimate}
         transition={motionPlan.shadowTransition}
       />
+      <motion.div
+        className="die-shell__impact"
+        initial={{ opacity: 0, scaleX: 0.55, scaleY: 0.55 }}
+        animate={motionPlan.impactAnimate}
+        transition={motionPlan.impactTransition}
+        aria-hidden="true"
+      />
       <motion.div className="die-shell__body" initial={{ y: 0, x: 0, rotateX: 0, rotateY: 0, rotateZ: 0, rotate: 0, scaleX: 1, scaleY: 1 }} animate={motionPlan.bodyAnimate} transition={motionPlan.bodyTransition}>
         <div className={`die-card die-card--${accent}`} style={accentStyle}>
           <div className="die-card__shine" />
@@ -293,6 +307,16 @@ function DieCard({
               <span className="die-card__faces">{footer}</span>
             </motion.div>
           </div>
+          <motion.div
+            className="die-card__glint"
+            initial={{ x: '-130%', opacity: 0 }}
+            animate={motionPlan.glintAnimate}
+            transition={motionPlan.glintTransition}
+            aria-hidden="true"
+          />
+        </div>
+        <div className={`die-card die-card--${accent} die-card__back`} style={accentStyle} aria-hidden="true">
+          <span className="die-card__back-pip" />
         </div>
       </motion.div>
     </div>
@@ -344,8 +368,17 @@ export default function RngChordsApp() {
   const [sessionReady, setSessionReady] = useState(false)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false)
   const [showMoreTransport, setShowMoreTransport] = useState(false)
+  const [tableTheme, setTableTheme] = useState<TableTheme>('emerald')
+  const settingsDrawerRef = useRef<HTMLElement>(null)
 
   const displayProgression = useMemo(() => applyRhythmFeel(progression, rhythmFeel), [progression, rhythmFeel])
+  const progressionAnnouncement = useMemo(
+    () =>
+      displayProgression.chords.length > 0
+        ? `Progression in ${formatKeyBadge(progression.keyCenter)}: ${displayProgression.chords.map((chord) => chord.label).join(', ')}.`
+        : 'No chords in the tray yet.',
+    [displayProgression.chords, progression.keyCenter],
+  )
   const highlightedChordIndex = activeChordIndex ?? jamChordIndex
   const progressionBeats = useMemo(() => totalBeats(displayProgression.chords), [displayProgression.chords])
   const progressionDuration = useMemo(() => formatTime(progressionBeats, tempo), [progressionBeats, tempo])
@@ -353,7 +386,12 @@ export default function RngChordsApp() {
     () => PLAYGROUND_PRESETS.find((preset) => preset.id === activePresetId) ?? PLAYGROUND_PRESETS[0],
     [activePresetId],
   )
-  const diceTrayStyle = useMemo(() => getDiceTrayStyle() as CSSProperties, [])
+  const diceCount = mode === 'advanced' ? ADVANCED_PARAMETERS.length : displayProgression.chords.length
+  const diceColumns = diceCount <= 1 ? 1 : diceCount <= 4 ? diceCount : Math.ceil(diceCount / 2)
+  const diceTrayStyle = useMemo(
+    () => ({ '--dice-cols': String(diceColumns) }) as CSSProperties,
+    [diceColumns],
+  )
   const playerTips = useMemo(() => createPlayerTips(displayProgression, instrumentFocus), [displayProgression, instrumentFocus])
   const visiblePlayerTips = useMemo(() => playerTips.slice(0, 1), [playerTips])
   const practicePrompt = useMemo(() => createPracticePrompt(displayProgression, instrumentFocus), [displayProgression, instrumentFocus])
@@ -363,8 +401,8 @@ export default function RngChordsApp() {
         label: ADVANCED_PARAMETER_LABELS[parameter],
         value: advancedRoll.values[parameter],
         footer: `d${advancedConfig.faceCounts[parameter]}`,
-        detail: getAdvancedDieDetail(advancedRoll.values[parameter]),
-        accent: (['ruby', 'brass', 'emerald', 'sapphire', 'ruby'][index] ?? 'ruby') as
+        detail: undefined,
+        accent: (['ruby', 'sapphire', 'brass', 'emerald', 'ruby'][index] ?? 'ruby') as
           | DiceAccent,
       }))
     : displayProgression.chords.map((chord, index) => ({
@@ -372,7 +410,7 @@ export default function RngChordsApp() {
         value: formatDieChordValue(chord),
         footer: mode === 'guided' ? `d${guidedFaces[index] ?? 6}` : RHYTHM_LABELS[chord.rhythmBeats] ?? `${chord.rhythmBeats} beats`,
         detail: getGuidedDieDetail(chord),
-        accent: (['ruby', 'brass', 'emerald', 'sapphire'][index % 4] ?? 'ruby') as
+        accent: (['ruby', 'sapphire', 'brass', 'emerald'][index % 4] ?? 'ruby') as
           | DiceAccent,
       }))
 
@@ -453,27 +491,29 @@ export default function RngChordsApp() {
 
   const handleModeTabKeyDown = useCallback((event: ReactKeyboardEvent<HTMLButtonElement>, currentMode: Mode) => {
     const currentIndex = MODE_OPTIONS.indexOf(currentMode)
+    let nextMode: Mode | null = null
 
     if (event.key === 'Home') {
-      event.preventDefault()
-      setMode(MODE_OPTIONS[0] ?? 'guided')
-      return
+      nextMode = MODE_OPTIONS[0] ?? 'guided'
+    } else if (event.key === 'End') {
+      nextMode = MODE_OPTIONS.at(-1) ?? 'manual'
+    } else if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+      const direction = event.key === 'ArrowRight' ? 1 : -1
+      nextMode = MODE_OPTIONS[(currentIndex + direction + MODE_OPTIONS.length) % MODE_OPTIONS.length] ?? currentMode
     }
 
-    if (event.key === 'End') {
-      event.preventDefault()
-      setMode(MODE_OPTIONS.at(-1) ?? 'manual')
-      return
-    }
-
-    if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') {
+    if (!nextMode) {
       return
     }
 
     event.preventDefault()
-    const direction = event.key === 'ArrowRight' ? 1 : -1
-    const nextIndex = (currentIndex + direction + MODE_OPTIONS.length) % MODE_OPTIONS.length
-    setMode(MODE_OPTIONS[nextIndex] ?? currentMode)
+    setMode(nextMode)
+
+    // Move DOM focus to the newly selected tab so the roving tabIndex stays in
+    // sync and the screen reader follows the selection (APG tabs pattern). The
+    // tab nodes are always mounted, so focusing synchronously is safe — the
+    // re-render only flips tabIndex/aria-selected on the same element.
+    document.getElementById(createModeTabId(nextMode))?.focus()
   }, [])
 
   const rollGuided = useCallback(() => {
@@ -857,6 +897,97 @@ export default function RngChordsApp() {
     }
   }, [])
 
+  // Re-skin the whole table by flipping data-theme on <html>; the [data-theme]
+  // blocks in global.css remap the felt/leather/rim/pill tokens. Also sync the
+  // mobile browser chrome colour to the table.
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return
+    }
+
+    document.documentElement.setAttribute('data-theme', tableTheme)
+
+    const themeColor = ({
+      emerald: '#0b0706',
+      crimson: '#0b0506',
+      sapphire: '#05070d',
+      amethyst: '#09060e',
+    } satisfies Record<TableTheme, string>)[tableTheme]
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', themeColor)
+  }, [tableTheme])
+
+  // Make the settings drawer a real modal dialog: lock body scroll, move focus
+  // in, trap Tab within it, close on Escape, and restore focus to the trigger
+  // on close. (The markup already declares role="dialog" aria-modal.)
+  useEffect(() => {
+    if (!isSettingsOpen) {
+      return
+    }
+
+    const drawer = settingsDrawerRef.current
+
+    if (!drawer || typeof document === 'undefined') {
+      return
+    }
+
+    const previouslyFocused = document.activeElement as HTMLElement | null
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+    const previousOverflow = document.body.style.overflow
+    const previousPaddingRight = document.body.style.paddingRight
+    document.body.style.overflow = 'hidden'
+
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`
+    }
+
+    const getFocusable = () =>
+      Array.from(
+        drawer.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), select:not([disabled]), textarea:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((element) => element.offsetParent !== null)
+
+    getFocusable()[0]?.focus()
+
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        setIsSettingsOpen(false)
+        return
+      }
+
+      if (event.key !== 'Tab') {
+        return
+      }
+
+      const focusable = getFocusable()
+
+      if (focusable.length === 0) {
+        return
+      }
+
+      const first = focusable[0] as HTMLElement
+      const last = focusable[focusable.length - 1] as HTMLElement
+
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+
+    drawer.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      drawer.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = previousOverflow
+      document.body.style.paddingRight = previousPaddingRight
+      previouslyFocused?.focus?.()
+    }
+  }, [isSettingsOpen])
+
   // Tactile click SFX on any button press. Single delegated listener so
   // we do not need to touch every button call site.
   useEffect(() => {
@@ -924,6 +1055,7 @@ export default function RngChordsApp() {
       setRhythmFeel(session.rhythmFeel ?? 'straight')
       setSections(nextSections)
       setShowTheory(Boolean(session.showTheory))
+      setTableTheme(TABLE_THEME_IDS.includes(session.tableTheme as TableTheme) ? (session.tableTheme as TableTheme) : 'emerald')
       setTempo(typeof session.tempo === 'number' ? session.tempo : INITIAL_PRESET?.tempo ?? 92)
       setDelightMessage(createDelightMessage(session.progression))
       setStatus('Restored your last idea.')
@@ -958,6 +1090,7 @@ export default function RngChordsApp() {
         rhythmFeel,
         sections,
         showTheory,
+        tableTheme,
         tempo,
       }
 
@@ -984,6 +1117,7 @@ export default function RngChordsApp() {
     sections,
     sessionReady,
     showTheory,
+    tableTheme,
     tempo,
   ])
 
@@ -992,7 +1126,8 @@ export default function RngChordsApp() {
       <a className="skip-link" href="#main-content">Skip to the chord generator</a>
       <div className="rng-app-shell">
         <div className="rng-app-shell__glow" />
-        <section className="workstation-top panel-surface panel-surface--wide reveal" style={{ animationDelay: '80ms' }}>
+        <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">{progressionAnnouncement}</p>
+        <section className="workstation-top panel-surface panel-surface--wide reveal" style={{ animationDelay: '60ms' }}>
         <div className="workstation-topbar">
           <div className="workstation-brand">
             <span className="hero-strip__kicker">RNG Chords</span>
@@ -1006,6 +1141,8 @@ export default function RngChordsApp() {
               className="pill-button pill-button--muted settings-trigger"
               onClick={() => setIsSettingsOpen(true)}
               aria-expanded={isSettingsOpen}
+              aria-haspopup="dialog"
+              aria-controls={isSettingsOpen ? 'settings-drawer' : undefined}
             >
               <span aria-hidden="true">⚙</span>
               <span>Customize</span>
@@ -1045,6 +1182,7 @@ export default function RngChordsApp() {
         {isSettingsOpen ? (
         <aside
           id="settings-drawer"
+          ref={settingsDrawerRef}
           className="settings-drawer settings-drawer--open"
           role="dialog"
           aria-modal="true"
@@ -1065,10 +1203,30 @@ export default function RngChordsApp() {
             </button>
           </div>
 
+          <div className="theme-picker">
+            <span className="panel-title__eyebrow">Table theme</span>
+            <div className="theme-swatches" role="group" aria-label="Table theme">
+              {TABLE_THEMES.map((theme) => (
+                <button
+                  key={theme.id}
+                  type="button"
+                  className={theme.id === tableTheme ? 'theme-swatch theme-swatch--active' : 'theme-swatch'}
+                  onClick={() => setTableTheme(theme.id)}
+                  aria-pressed={theme.id === tableTheme}
+                  title={theme.detail}
+                >
+                  <span className="theme-swatch__chip" style={{ background: theme.swatch }} aria-hidden="true" />
+                  <span className="theme-swatch__label">{theme.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div
             className="mode-rail settings-drawer__modes"
             role="tablist"
             aria-label="Idea generation modes"
+            aria-orientation="horizontal"
           >
             {MODE_OPTIONS.map((entry) => (
               <button
@@ -1371,7 +1529,7 @@ export default function RngChordsApp() {
         ) : null}
 
         <main id="main-content" className="tabletop-grid tabletop-grid--stage" tabIndex={-1}>
-        <section className="stage-bank panel-surface panel-surface--tray reveal" style={{ animationDelay: '300ms' }}>
+        <section className="stage-bank panel-surface panel-surface--tray reveal" style={{ animationDelay: '140ms' }}>
           <div className="compact-panel-head compact-panel-head--tray">
             <span className="panel-title__eyebrow">Dice</span>
             <h2>Idea tray</h2>
@@ -1385,7 +1543,7 @@ export default function RngChordsApp() {
               Surprise Me
             </button>
           </div>
-          <div className="dice-tray" style={diceTrayStyle}>
+          <div className="dice-tray" style={diceTrayStyle} aria-hidden="true">
             {stageDice.map((die, index) => (
               <DieCard
                 key={`${die.label}-${die.footer}-${die.value}-${diceImpulse}`}
@@ -1407,7 +1565,7 @@ export default function RngChordsApp() {
           </div>
         </section>
 
-        <section className="results-bank panel-surface reveal" style={{ animationDelay: '400ms' }}>
+        <section className="results-bank panel-surface reveal" style={{ animationDelay: '220ms' }}>
           <div className="compact-panel-head compact-panel-head--results">
             <span className="panel-title__eyebrow">Sound</span>
             <h2>Playback &amp; edit</h2>
@@ -1472,6 +1630,8 @@ export default function RngChordsApp() {
               onPointerEnter={preloadPlayback}
               onFocus={preloadPlayback}
               onClick={startPlayback}
+              aria-keyshortcuts="Space"
+              aria-describedby="jam-shortcuts"
             >
               {playing ? 'Replay' : 'Play'}
             </button>
@@ -1496,6 +1656,7 @@ export default function RngChordsApp() {
               className="pill-button pill-button--muted transport-more"
               onClick={() => setShowMoreTransport((current) => !current)}
               aria-expanded={showMoreTransport}
+              aria-controls={showMoreTransport ? 'transport-more' : undefined}
             >
               {showMoreTransport ? 'Fewer options' : 'More options'}
             </button>
@@ -1545,7 +1706,8 @@ export default function RngChordsApp() {
               displayProgression.chords.map((chord, index) => (
                 <article
                   key={chord.id}
-                  className={index === highlightedChordIndex ? 'chord-card chord-card--active' : 'chord-card'}
+                  className={`chord-card${index === highlightedChordIndex ? ' chord-card--active' : ''}${playing && index === activeChordIndex ? ' chord-card--playing' : ''}`}
+                  style={{ '--beat-ms': `${Math.round(60000 / tempo)}ms` } as CSSProperties}
                 >
                   <div className="chord-card__head">
                     <div>
@@ -1633,7 +1795,7 @@ export default function RngChordsApp() {
         </section>
         </main>
 
-        <footer className="status-bar reveal" role="status" aria-live="polite" style={{ animationDelay: '500ms' }}>
+        <footer className="status-bar reveal" role="status" aria-live="polite" style={{ animationDelay: '300ms' }}>
           <span>{status}</span>
           <strong>
             {progression.chords.length} chords · {progressionBeats.toFixed(1)} beats · {progressionDuration}
