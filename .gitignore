@@ -25,3 +25,9 @@ pnpm-debug.log*
 
 .vscode/
 .opencode/
+
+# local tooling state
+.wrangler/
+squirrel.toml
+.squirrel/
+.claude/
