@@ -1,0 +1,107 @@
+---
+import "../styles/global.css";
+import "../styles/tactile.css";
+
+const pageTitle = "RNG Chords Subprocessor Disclosure";
+const pageDescription =
+	"Subprocessor disclosure for RNG Chords, including Cloudflare Pages hosting and browser-local chord generation.";
+const pageUrl = Astro.site ? new URL("/subprocessors/", Astro.site).toString() : undefined;
+const socialImage = Astro.site
+	? new URL("/social-card.svg", Astro.site).toString()
+	: "/social-card.svg";
+const publishedDate = "2026-06-19";
+const structuredData = {
+	"@context": "https://schema.org",
+	"@type": "WebPage",
+	name: "RNG Chords Subprocessor Disclosure",
+	description: pageDescription,
+	...(pageUrl ? { url: pageUrl } : {}),
+	datePublished: publishedDate,
+	dateModified: publishedDate,
+	author: {
+		"@type": "Person",
+		name: "Jonathan R. Reed",
+		url: "https://jonathanrreed.com",
+	},
+};
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<script is:inline>try{var t=JSON.parse(localStorage.getItem("rng-chords-creative-session")||"{}").tableTheme;if(t)document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
+		<link rel="icon" href="/favicon.ico" sizes="any">
+		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png">
+		<link rel="manifest" href="/site.webmanifest">
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="generator" content={Astro.generator} />
+		<meta name="theme-color" content="#0b0706" />
+		<meta name="description" content={pageDescription} />
+		<meta property="og:type" content="website" />
+		<meta property="og:title" content={pageTitle} />
+		<meta property="og:description" content={pageDescription} />
+		<meta property="og:image" content={socialImage} />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={pageTitle} />
+		<meta name="twitter:description" content={pageDescription} />
+		<meta name="twitter:image" content={socialImage} />
+		{pageUrl ? <link rel="canonical" href={pageUrl} /> : null}
+		{pageUrl ? <meta property="og:url" content={pageUrl} /> : null}
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+			rel="stylesheet"
+		/>
+		<title>{pageTitle}</title>
+		<script
+			is:inline
+			type="application/ld+json"
+			set:html={JSON.stringify(structuredData).replace(/</g, "\\u003c")}
+		/>
+	</head>
+	<body>
+		<main class="info-page">
+			<a class="info-page__back" href="/">RNG Chords</a>
+			<nav class="sr-only" aria-label="RNG Chords utility pages">
+				<a href="/">RNG Chords generator</a>
+				<a href="/about/">About RNG Chords</a>
+				<a href="/contact/">Contact RNG Chords</a>
+				<a href="/privacy/">RNG Chords privacy policy</a>
+			</nav>
+			<section class="info-page__panel panel-surface">
+				<p class="panel-title__eyebrow">Subprocessors</p>
+				<h1>RNG Chords keeps the public site stack small.</h1>
+				<p>
+					RNG Chords is hosted on Cloudflare Pages. Cloudflare may process
+					routine request metadata, such as IP address, user agent, request
+					time, and security signals, to deliver and protect the site.
+				</p>
+				<p>
+					The chord generator runs in the browser. It does not create accounts,
+					store generated progressions in an application database, or send chord
+					ideas to a hosted music service.
+				</p>
+				<p>
+					MIDI export is generated from the current browser session. Once you
+					save or share an exported file, that file is controlled by the device,
+					DAW, notes app, or storage service you choose.
+				</p>
+				<p>
+					If RNG Chords later adds accounts, sync, analytics, collaboration, or
+					hosted progression libraries, this disclosure should be updated before
+					those services receive production traffic.
+				</p>
+				<p>
+					For subprocessor or data-handling questions, use the <a href="/contact/">RNG
+					Chords contact page</a>.
+				</p>
+				<p class="info-page__meta">
+					Last updated <time datetime={publishedDate}>June 19, 2026</time>.
+				</p>
+			</section>
+		</main>
+	</body>
+</html>

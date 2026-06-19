@@ -18,8 +18,12 @@ RNG Chords is Jonathan R. Reed's browser tool for generating chord progressions 
 ## Canonical pages
 
 - Homepage: https://rngchords.jonathanrreed.com/
+- About: https://rngchords.jonathanrreed.com/about/
+- Privacy: https://rngchords.jonathanrreed.com/privacy/
+- Contact: https://rngchords.jonathanrreed.com/contact/
+- Subprocessors: https://rngchords.jonathanrreed.com/subprocessors/
 - Creator: https://jonathanrreed.com/
-- Contact: https://jonathanrreed.com/contact/
+- Creator contact: https://jonathanrreed.com/contact/
 
 ## Contact
 

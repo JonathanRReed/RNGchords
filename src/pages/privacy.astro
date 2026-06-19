@@ -10,6 +10,7 @@ const socialImage = Astro.site
 	? new URL("/social-card.svg", Astro.site).toString()
 	: "/social-card.svg";
 const publishedDate = "2026-04-21";
+const modifiedDate = "2026-06-19";
 const structuredData = {
 	"@context": "https://schema.org",
 	"@type": "PrivacyPolicy",
@@ -17,7 +18,7 @@ const structuredData = {
 	description: pageDescription,
 	...(pageUrl ? { url: pageUrl } : {}),
 	datePublished: publishedDate,
-	dateModified: publishedDate,
+	dateModified: modifiedDate,
 	author: {
 		"@type": "Person",
 		name: "Jonathan R. Reed",
@@ -69,6 +70,7 @@ const structuredData = {
 				<a href="/">RNG Chords generator</a>
 				<a href="/about/">About RNG Chords</a>
 				<a href="/contact/">Contact RNG Chords</a>
+				<a href="/subprocessors/">RNG Chords subprocessor disclosure</a>
 			</nav>
 			<section class="info-page__panel panel-surface">
 				<p class="panel-title__eyebrow">Privacy</p>
@@ -81,8 +83,10 @@ const structuredData = {
 				<p>
 					The site is hosted on Cloudflare Pages. Cloudflare may process routine
 					request metadata, such as IP address, user agent, and request time, to
-					deliver and protect the site. RNG Chords does not add analytics,
-					tracking pixels, advertising scripts, or newsletter signups.
+					deliver and protect the site. See the <a href="/subprocessors/">subprocessor
+					disclosure</a> for the current hosting and infrastructure context. RNG
+					Chords does not add analytics, tracking pixels, advertising scripts,
+					or newsletter signups.
 				</p>
 				<p>
 					Generated progressions, locked chord choices, playback settings, and
@@ -124,7 +128,7 @@ const structuredData = {
 					file from a writing session.
 				</p>
 				<p class="info-page__meta">
-					Published <time datetime={publishedDate}>April 21, 2026</time>.
+					Last updated <time datetime={modifiedDate}>June 19, 2026</time>.
 				</p>
 			</section>
 		</main>
