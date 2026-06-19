@@ -11,6 +11,11 @@ const pageUrl = Astro.site ? new URL("/", Astro.site).toString() : undefined;
 const socialImage = Astro.site
 	? new URL("/social-card.svg", Astro.site).toString()
 	: "/social-card.svg";
+const authorSameAs = [
+	"https://jonathanrreed.com/",
+	"https://github.com/JonathanRReed",
+	"https://helloworldfirm.com/",
+];
 
 // SoftwareApplication JSON-LD. Google's rich-results validator requires
 // `offers` plus one of `aggregateRating` / `review`. The tool is free and
@@ -41,11 +46,13 @@ const structuredData = {
 		"@type": "Person",
 		name: "Jonathan R. Reed",
 		url: "https://jonathanrreed.com",
+		sameAs: authorSameAs,
 	},
 	creator: {
 		"@type": "Person",
 		name: "Jonathan R. Reed",
 		url: "https://jonathanrreed.com",
+		sameAs: authorSameAs,
 	},
 	review: {
 		"@type": "Review",
@@ -53,6 +60,7 @@ const structuredData = {
 			"@type": "Person",
 			name: "Jonathan R. Reed",
 			url: "https://jonathanrreed.com",
+			sameAs: authorSameAs,
 		},
 		reviewRating: {
 			"@type": "Rating",
@@ -79,6 +87,7 @@ const structuredData = {
 		<meta name="generator" content={Astro.generator} />
 		<meta name="theme-color" content="#0b0706" />
 		<meta name="description" content={pageDescription} />
+		<meta name="author" content="Jonathan R. Reed" />
 		<meta property="og:type" content="website" />
 		<meta property="og:title" content={pageTitle} />
 		<meta property="og:description" content={pageDescription} />
