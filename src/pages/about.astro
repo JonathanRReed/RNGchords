@@ -10,6 +10,7 @@ const socialImage = Astro.site
 	? new URL("/social-card.svg", Astro.site).toString()
 	: "/social-card.svg";
 const publishedDate = "2026-04-21";
+const modifiedDate = "2026-07-16";
 const structuredData = {
 	"@context": "https://schema.org",
 	"@type": "AboutPage",
@@ -17,41 +18,23 @@ const structuredData = {
 	description: pageDescription,
 	...(pageUrl ? { url: pageUrl } : {}),
 	datePublished: publishedDate,
-	dateModified: publishedDate,
+	dateModified: modifiedDate,
 	author: {
 		"@type": "Person",
 		name: "Jonathan R. Reed",
 		url: "https://jonathanrreed.com",
 	},
 	mainEntity: {
-		"@type": "SoftwareApplication",
+		"@type": "WebSite",
+		"@id": "https://rngchords.jonathanrreed.com/#website",
 		name: "RNG Chords",
-		applicationCategory: "MusicApplication",
-		operatingSystem: "Any modern web browser",
+		description: pageDescription,
 		isAccessibleForFree: true,
 		url: "https://rngchords.jonathanrreed.com/",
-		offers: {
-			"@type": "Offer",
-			price: 0,
-			priceCurrency: "USD",
-			availability: "https://schema.org/InStock",
-			category: "Free",
-		},
-		review: {
-			"@type": "Review",
-			author: {
-				"@type": "Person",
-				name: "Jonathan R. Reed",
-				url: "https://jonathanrreed.com",
-			},
-			reviewRating: {
-				"@type": "Rating",
-				ratingValue: 5,
-				bestRating: 5,
-				worstRating: 1,
-			},
-			reviewBody:
-				"A free browser-based chord progression generator for musicians who want fast ideas, instant playback, locked chords, and MIDI export without an account.",
+		creator: {
+			"@type": "Person",
+			name: "Jonathan R. Reed",
+			url: "https://jonathanrreed.com",
 		},
 	},
 };
