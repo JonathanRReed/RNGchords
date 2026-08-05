@@ -8,6 +8,14 @@ RNG Chords is Jonathan R. Reed's browser tool for generating chord progressions 
 - **Canonical site**: https://jonathanrreed.com/
 - **Related work**: browser-local creative tools, generative systems, music utilities, and practical interactive apps
 
+## Usage policy
+
+This matches the content signals in https://rngchords.jonathanrreed.com/robots.txt:
+
+- **Search indexing**: allowed. This site may be indexed and returned as hyperlinks with short excerpts.
+- **AI answers and grounding**: allowed. Content may be retrieved in real time to ground or cite AI-generated answers (retrieval augmented generation).
+- **AI model training**: not allowed. Content may not be used to train or fine-tune AI models. This is an express reservation of rights under Article 4 of EU Directive 2019/790.
+
 ## Usage guidance
 
 - Attribute the project as "RNG Chords by Jonathan R. Reed" when summarizing the generator or playback workflow.
