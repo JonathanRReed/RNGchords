@@ -18,6 +18,14 @@ const authorSameAs = [
 	"https://github.com/JonathanRReed",
 	"https://helloworldfirm.com/",
 ];
+const publishedDate = "2026-04-21";
+const modifiedDate = "2026-08-04";
+const author = {
+	"@type": "Person",
+	name: "Jonathan R. Reed",
+	url: "https://jonathanrreed.com",
+	sameAs: authorSameAs,
+};
 
 // Site-level JSON-LD describes the public tool without inventing independent
 // ratings or reviews that do not exist.
@@ -31,20 +39,43 @@ const structuredData = {
 	image: socialImage,
 	isAccessibleForFree: true,
 	inLanguage: "en-US",
-	datePublished: "2026-04-21",
-	dateModified: "2026-07-16",
-	author: {
-		"@type": "Person",
-		name: "Jonathan R. Reed",
-		url: "https://jonathanrreed.com",
-		sameAs: authorSameAs,
-	},
-	creator: {
-		"@type": "Person",
-		name: "Jonathan R. Reed",
-		url: "https://jonathanrreed.com",
-		sameAs: authorSameAs,
-	},
+	datePublished: publishedDate,
+	dateModified: modifiedDate,
+	author,
+	creator: author,
+};
+
+// WebApplication JSON-LD. Every claim below is stated somewhere on this page:
+// the generator controls themselves or the "How RNG Chords works" section.
+const applicationData = {
+	"@context": "https://schema.org",
+	"@type": "WebApplication",
+	"@id": `${pageUrl}#webapp`,
+	name: "RNG Chords",
+	description: pageDescription,
+	url: pageUrl,
+	image: socialImage,
+	applicationCategory: "MultimediaApplication",
+	applicationSubCategory: "Music",
+	operatingSystem: "Any device with a modern web browser",
+	browserRequirements: "Requires JavaScript.",
+	isAccessibleForFree: true,
+	inLanguage: "en-US",
+	datePublished: publishedDate,
+	dateModified: modifiedDate,
+	isPartOf: { "@id": `${pageUrl}#website` },
+	featureList: [
+		"Easy rolls that turn each die into one chord",
+		"Advanced rolls with separate dice for root path, quality, extensions, inversions, and rhythm",
+		"Manual builder for typing chord names or stacking a chord by hand",
+		"Easy, Color, and Tension complexity settings",
+		"In-browser playback with six sounds, loop, and a 58 to 164 BPM tempo range",
+		"Keep individual chords and reroll the rest",
+		"A, B, and C idea slots for comparing takes",
+		"MIDI export with the tempo written into the file",
+	],
+	author,
+	creator: author,
 };
 ---
 
@@ -90,9 +121,96 @@ const structuredData = {
 			type="application/ld+json"
 			set:html={JSON.stringify(structuredData).replace(/</g, "\\u003c")}
 		/>
+		<script
+			is:inline
+			type="application/ld+json"
+			set:html={JSON.stringify(applicationData).replace(/</g, "\\u003c")}
+		/>
 	</head>
 	<body>
 		<RngChordsApp client:load />
+
+		<section
+			class="page-explainer panel-surface reveal"
+			aria-labelledby="how-it-works"
+			style="animation-delay: 320ms;"
+		>
+			<p class="panel-title__eyebrow">How it works</p>
+			<h2 id="how-it-works">How RNG Chords picks the chords</h2>
+
+			<p>
+				Every roll starts with dice. In <strong>Easy rolls</strong> each die
+				becomes one chord, and the dice you choose (d4 up to d20) set how far
+				the roll can wander. <strong>Advanced rolls</strong> use five dice that
+				each control one thing: root path, quality color, extension color,
+				inversion stack, and rhythm pulse. The <strong>Manual builder</strong>
+				skips the dice, so you can type something like
+				<code>Cmaj9, Am11, D7b9, G13</code> or stack a chord by hand when you
+				already hear it.
+			</p>
+
+			<h3>Key and mode</h3>
+			<p>
+				You don't pick the key. The dice total picks it, always from the same
+				nine centers: C, G, D, A, E, F, B&#9837;, E&#9837;, and A&#9837;. Flat
+				keys spell the notes with flats and sharp keys spell them with sharps.
+				Every chord root comes from the major scale of that center, so the roots
+				stay inside one key.
+			</p>
+			<p>
+				Chord quality is rolled separately from the scale degree. That is why
+				you get a minor chord sitting where a major one would be "correct". The
+				roots keep the progression grounded and the qualities are where the
+				surprise comes from. There is no minor key switch. If you want a darker
+				loop, delete the chords that fight it and reroll the open slots until
+				the first chord lands minor.
+			</p>
+
+			<h3>What the complexity setting changes</h3>
+			<p>
+				Complexity swaps the pools the dice draw from. It does not change the
+				key.
+			</p>
+			<ul>
+				<li>
+					<strong>Easy</strong>: major, minor, and dominant chords only, at most
+					a 6, 7, or maj7 on top, root position, and quarter, half, or whole
+					note lengths.
+				</li>
+				<li>
+					<strong>Color</strong>: adds sus4, diminished, and augmented, plus
+					9ths, 11ths, 13ths and altered tones like &#9837;9 and &#9839;11.
+					Inversions go up to the second.
+				</li>
+				<li>
+					<strong>Tension</strong>: every chord gets an extension, inversions go
+					up to the third, and a chord can be as short as an eighth note.
+				</li>
+			</ul>
+
+			<h3>What to do with a roll</h3>
+			<p>
+				Play it before you judge it. Space plays or stops, the arrow keys
+				preview one chord at a time, and Enter replays the selected chord. Tempo
+				runs from 58 to 164 BPM, and there are six sounds to switch between
+				because a stack that sounds crowded on a bright piano can sit fine on a
+				pad.
+			</p>
+			<p>
+				Then keep what works. <strong>Keep</strong> pins a chord in place and
+				<strong>Reroll Unlocked</strong> rolls everything else again, so you can
+				hold two chords you like and hunt for the rest. Save a version to slot
+				A, B, or C when you want to compare takes instead of losing one.
+				<strong>Export MIDI</strong> writes a .mid file with the tempo already
+				set, so it lands in a DAW at the right speed.
+			</p>
+			<p>
+				None of this runs on a server. The rolls, the playback, and the MIDI
+				file are all made in the page, and your last session is saved in your
+				browser's local storage. There is no account and nothing to sign up for.
+				More background is on the <a href="/about/">about page</a>.
+			</p>
+		</section>
 
 		<footer class="site-footer reveal" style="animation-delay: 380ms;">
 			<div class="site-footer__inner">
@@ -119,5 +237,73 @@ const structuredData = {
 				</div>
 			</div>
 		</footer>
+
+		<style>
+			.page-explainer {
+				width: min(100% - 32px, 760px);
+				margin: 8px auto 40px;
+				padding: clamp(24px, 4vw, 40px);
+			}
+
+			.page-explainer h2 {
+				margin: 0 0 18px;
+				font-family: var(--font-display);
+				font-size: clamp(1.9rem, 4.5vw, 2.6rem);
+				line-height: 1.05;
+			}
+
+			.page-explainer h3 {
+				margin: 28px 0 10px;
+				font-size: 0.82rem;
+				font-weight: 800;
+				letter-spacing: 0.16em;
+				text-transform: uppercase;
+				color: rgba(249, 216, 154, 0.92);
+			}
+
+			.page-explainer p {
+				max-width: 64ch;
+				margin: 0 0 14px;
+				color: rgba(255, 230, 196, 0.72);
+				font-size: 0.98rem;
+				line-height: 1.75;
+			}
+
+			.page-explainer ul {
+				max-width: 64ch;
+				margin: 0 0 14px;
+				padding-left: 20px;
+				color: rgba(255, 230, 196, 0.72);
+				font-size: 0.98rem;
+				line-height: 1.75;
+			}
+
+			.page-explainer li {
+				margin-bottom: 8px;
+			}
+
+			.page-explainer strong {
+				color: rgba(255, 243, 218, 0.92);
+				font-weight: 700;
+			}
+
+			.page-explainer code {
+				padding: 1px 6px;
+				border: 1px solid rgba(232, 188, 131, 0.22);
+				border-radius: 6px;
+				background: rgba(0, 0, 0, 0.24);
+				font-size: 0.92em;
+				white-space: nowrap;
+			}
+
+			.page-explainer a {
+				color: rgba(255, 230, 196, 0.86);
+				text-underline-offset: 0.22em;
+			}
+
+			.page-explainer a:hover {
+				color: rgba(255, 243, 218, 0.98);
+			}
+		</style>
 	</body>
 </html>
