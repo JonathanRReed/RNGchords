@@ -1,8 +1,8 @@
 # RNG Chords
 
-RNG Chords is a playful browser-based random chord generator for guitarists, pianists, songwriters, and producers.
+RNG Chords is a browser-based random chord generator for guitarists, pianists, songwriters, and producers.
 
-It mixes dice-driven harmony generation, instant browser playback, MIDI export, and a lightweight sketchpad workflow so you can find a happy accident, keep the good bits, and build from them fast.
+Dice pick the chords, the browser plays them back, and MIDI export gets the idea out. Keep what works, reroll the rest.
 
 ## Why it exists
 
@@ -18,10 +18,10 @@ RNG Chords helps you:
 
 ## Who it is for
 
-- Guitarists who want fresh voicings and quick progression seeds
-- Pianists who want colorful harmony without menu-diving through plugins
-- Songwriters who want verse, chorus, or bridge ideas fast
-- Producers who want a quick harmonic sketch before arranging
+- Guitarists looking for voicings outside the usual shapes
+- Pianists who want color without menu-diving through plugins
+- Songwriters stuck on a verse, a chorus, or a bridge
+- Producers sketching harmony before they arrange anything
 
 ## What it does
 
@@ -38,9 +38,7 @@ RNG Chords helps you:
 
 ## Example outcomes
 
-- Indie-pop lift with bright major color and quick movement
-- Neo-soul drift with richer extensions and smoother motion
-- Cinematic tension with darker harmony and a slower release
+Depending on complexity and tempo, a roll can land anywhere from a bright indie-pop lift to a slower neo-soul drift to something darker with more tension in it.
 
 ## Tech stack
 
@@ -79,12 +77,12 @@ bun run lint && bun run typecheck && bun test
 ### Start fast
 
 - Pick an instrument focus that matches how you play
-- Choose `Easy`, `Color`, or `Spicy` chord complexity
-- Click `Roll First Idea` or `Surprise Me`
+- Choose `Easy`, `Color`, or `Tension` chord complexity
+- Click `Roll New Idea` or `Surprise Me`
 
 ### Roll ideas
 
-- Use `Roll First Idea`, `Roll This Setup`, or `Roll New Idea` depending on where you are in the app
+- Use `Roll New Idea` or `Roll This Setup` depending on where you are in the app
 - Use `Surprise Me` to randomize the musical setup and playback instrument
 
 ### Shape the progression
@@ -113,9 +111,9 @@ bun run lint && bun run typecheck && bun test
 
 ### Keyboard shortcuts
 
-- `Space` — play or stop
-- `←` / `→` — preview neighboring chords
-- `Enter` — replay the selected chord preview
+- `Space`: play or stop
+- `←` / `→`: preview neighboring chords
+- `Enter`: replay the selected chord preview
 
 ## Project structure
 
@@ -134,6 +132,6 @@ bun run lint && bun run typecheck && bun test
 
 ## Notes
 
-- The app is designed for fast ideation, not strict theory-first composition
+- The app is built for sketching, so most of the theory decisions stay with you
 - Playback uses browser audio, so the first interaction may need to unlock audio on some browsers
 - Social sharing metadata becomes fully absolute when `SITE_URL` is set for production

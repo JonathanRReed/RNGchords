@@ -10,6 +10,7 @@ const socialImage = Astro.site
 	? new URL("/social-card.svg", Astro.site).toString()
 	: "/social-card.svg";
 const publishedDate = "2026-04-21";
+const modifiedDate = "2026-08-04";
 const structuredData = {
 	"@context": "https://schema.org",
 	"@type": "ContactPage",
@@ -17,7 +18,7 @@ const structuredData = {
 	description: pageDescription,
 	...(pageUrl ? { url: pageUrl } : {}),
 	datePublished: publishedDate,
-	dateModified: publishedDate,
+	dateModified: modifiedDate,
 	author: {
 		"@type": "Person",
 		name: "Jonathan R. Reed",
@@ -74,49 +75,38 @@ const structuredData = {
 				<p class="panel-title__eyebrow">Contact</p>
 				<h1>Contact Jonathan about RNG Chords.</h1>
 				<p>
-					For feedback, accessibility issues, music workflow requests, or
-					questions about RNG Chords, use Jonathan R. Reed's main contact page.
+					Feedback, bug reports, accessibility problems, and feature ideas for
+					RNG Chords all go through Jonathan R. Reed's main contact page.
 				</p>
 				<p>
-					Helpful notes include the browser you used, whether playback started,
-					which instrument was selected, and whether the issue appeared while
-					rolling chords, locking a progression, copying text, or exporting MIDI.
+					If something broke, tell me the browser, whether playback ever started,
+					which instrument was selected, and what you were doing when it went
+					wrong: rolling chords, keeping a progression, copying text, or
+					exporting MIDI.
 				</p>
 				<p>
-					Feedback is most useful when it explains the writing or practice
-					context. Examples include guitar sketching, piano practice, pop
-					topline writing, ambient harmony, loop building, or production work
-					where quick chord options are useful.
+					A progression that just sounds bad is a different report. Include the
+					mode, key, instrument, tempo, and any chords you had kept. For a failed
+					export, say whether the file was headed for a DAW, notation software,
+					or storage. That is the fastest way to tell a musical complaint apart
+					from a browser bug.
 				</p>
 				<p>
-					If a progression sounds wrong, include the mode, key, instrument,
-					tempo, and any locked chords. If an export fails, mention whether the
-					file was meant for a DAW, notation software, or a simple archive of the
-					idea. That context makes it easier to separate a musical preference
-					from a browser issue.
+					Accessibility notes are welcome, and I would rather hear them early.
+					Keyboard navigation, focus order, control labels, the playback
+					controls, reduced motion, and phone screens are the places most likely
+					to have something wrong with them.
 				</p>
 				<p>
-					Accessibility notes are welcome. Helpful reports describe keyboard
-					navigation, focus order, control labels, playback controls, reduced
-					motion settings, or mobile screen behavior. The goal is for RNG Chords
-					to remain fast and usable during a writing session.
+					For feature ideas, describe the musical problem instead of naming a
+					control. "I need more borrowed chords in minor keys" or "I want a
+					cleaner way to practice ii V I movement" tells me far more than a
+					request for more randomness. Same with teaching: if you use this in a
+					lesson or a rehearsal, mention the level and the exercise.
 				</p>
 				<p>
-					For theory or feature ideas, include the musical problem instead of
-					only naming a control. A note like "I need more borrowed chords in
-					minor keys" or "I want a cleaner way to practice ii V I movement" is
-					more actionable than a broad request for more randomness.
-				</p>
-				<p>
-					If you are using RNG Chords in a classroom, lesson, or rehearsal
-					setting, mention the instrument level and the type of exercise. That
-					helps keep future changes useful for beginners who need clear
-					progressions and advanced players who want more harmonic range.
-				</p>
-				<p>
-					Short, specific notes are enough. Useful feedback explains
-					what you expected, what happened, and how the result affected the
-					music task.
+					Short notes are fine. What you expected, what happened, and what it did
+					to the thing you were working on.
 				</p>
 				<p>
 					<a class="info-page__button" href="https://jonathanrreed.com/contact/">

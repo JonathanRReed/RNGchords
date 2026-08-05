@@ -1569,7 +1569,7 @@ export default function RngChordsApp() {
           <div className="compact-panel-head compact-panel-head--results">
             <span className="panel-title__eyebrow">Sound</span>
             <h2>Playback &amp; edit</h2>
-            <p>Hear the idea, keep the best chords, and export it when it earns a spot in your sketchbook.</p>
+            <p>Hear the idea, keep the chords that work, and export it when it's worth saving.</p>
           </div>
 
           <div className="idea-utility-bar">

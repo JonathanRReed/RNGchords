@@ -10,7 +10,7 @@ const socialImage = Astro.site
 	? new URL("/social-card.svg", Astro.site).toString()
 	: "/social-card.svg";
 const publishedDate = "2026-04-21";
-const modifiedDate = "2026-07-16";
+const modifiedDate = "2026-08-04";
 const structuredData = {
 	"@context": "https://schema.org",
 	"@type": "AboutPage",
@@ -88,49 +88,34 @@ const structuredData = {
 				<p class="panel-title__eyebrow">About</p>
 				<h1>Random chord ideas for writing and practice.</h1>
 				<p>
-					RNG Chords is a free browser-based chord progression generator by
-					Jonathan R. Reed. It is built for guitarists, pianists, songwriters,
-					and producers who want quick harmonic prompts that can be heard,
-					edited, saved into idea slots, and exported as MIDI.
+					RNG Chords is a free chord progression generator that runs in the
+					browser. I built it for guitarists, pianists, songwriters, and
+					producers who want a progression sitting in front of them before they
+					have any plan for it.
 				</p>
 				<p>
-					The generator keeps the workflow direct: roll a progression, lock
-					the chords that work, reroll the rest, preview the sound, and bring
-					the selected ideas into a writing session.
+					The loop is short. Roll a progression, play it back, keep the chords
+					that work, and reroll the rest until the thing holds up. Save a
+					version to slot A, B, or C when you want to compare takes, then export
+					MIDI and finish the idea in a DAW or on the instrument.
 				</p>
 				<p>
-					The app is meant for early composition work. Instead of searching
-					through theory charts or guessing at the next chord, a player can
-					generate a small set of usable options, keep the strongest choices,
-					and hear how the loop works on guitar, piano, or a production track.
+					Most of the difficulty in starting is having nothing to react to. A
+					random roll fixes that. Some rolls are wrong in a way that still helps,
+					because hearing a chord you would never have written usually tells you
+					what you actually wanted in that slot. Taste is still your job. This
+					just gets you to the part where you have opinions.
 				</p>
 				<p>
-					RNG Chords also works as a practice prompt. A musician can roll a key,
-					try the progression by ear, transpose it, or export the MIDI into a DAW
-					for arranging. The goal is not to replace theory or taste. It is to
-					remove setup friction so the writer can make musical decisions sooner.
+					It works as a practice prompt too. Reroll until you land in a key you
+					don't play in often, try the progression by ear, transpose it yourself,
+					or send the MIDI into a DAW or notation software and read it back.
 				</p>
 				<p>
-					Each roll can be accepted, changed, or ignored. That keeps the tool
-					lightweight enough for a browser tab while still covering common
-					needs: a verse loop, a bridge change, a practice cycle, a backing
-					track, or a harmonic sketch before recording.
-				</p>
-				<p>
-					The interface avoids accounts and projects so the app can stay focused
-					on a single job. Open it, roll a few possibilities, keep the strongest
-					chords, and move the idea into the instrument or software where the
-					song is actually being written.
-				</p>
-				<p>
-					That makes RNG Chords suitable for short practice breaks, longer
-					writing sessions, and quick experiments when a track needs another
-					harmonic option.
-				</p>
-				<p>
-					It is intentionally scoped to chord generation, playback, locking,
-					rerolling, and export so the page remains focused on composition
-					instead of account or project management.
+					There is no account, no project list, and no sync. Your last session is
+					saved in your browser and that's all, so export a progression before
+					you close the tab if it matters. Keeping the scope that small is why it
+					stays a single tab you can open between other work.
 				</p>
 				<p class="info-page__meta">
 					Published <time datetime={publishedDate}>April 21, 2026</time>.
