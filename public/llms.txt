@@ -11,7 +11,7 @@ Built and maintained by Jonathan R. Reed, whose canonical site is <https://jonat
 - [Privacy](https://rngchords.jonathanrreed.com/privacy/): What the site stores and where.
 - [Subprocessors](https://rngchords.jonathanrreed.com/subprocessors/): Hosting and infrastructure disclosure.
 - [Contact](https://rngchords.jonathanrreed.com/contact/): Corrections, collaboration, and attribution questions.
-- [Sitemap](https://rngchords.jonathanrreed.com/sitemap-index.xml): Every indexable URL on the site.
+- [Sitemap](https://rngchords.jonathanrreed.com/sitemap.xml): Every indexable URL on the site.
 - [Creator](https://jonathanrreed.com/): Jonathan R. Reed's canonical site.
 
 ## Policies
