@@ -59,6 +59,13 @@ const applicationData = {
 	operatingSystem: "Any device with a modern web browser",
 	browserRequirements: "Requires JavaScript.",
 	isAccessibleForFree: true,
+	// The tool is free to use, which the "How it works" section says in plain
+	// text. No rating or review markup: none exist.
+	offers: {
+		"@type": "Offer",
+		price: "0",
+		priceCurrency: "USD",
+	},
 	inLanguage: "en-US",
 	datePublished: publishedDate,
 	dateModified: modifiedDate,
@@ -206,7 +213,8 @@ const applicationData = {
 			<p>
 				None of this runs on a server. The rolls, the playback, and the MIDI
 				file are all made in the page, and your last session is saved in your
-				browser's local storage. There is no account and nothing to sign up for.
+				browser's local storage. It's free to use, with no account and nothing
+				to sign up for.
 				More background is on the <a href="/about/">about page</a>.
 			</p>
 		</section>
