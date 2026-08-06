@@ -460,6 +460,19 @@ a {
   max-width: 38ch;
 }
 
+.brand-facts {
+  max-width: 46ch;
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: rgba(255, 241, 220, 0.66);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.brand-facts li {
+  margin-bottom: 4px;
+}
+
 .compact-panel-head {
   display: grid;
   gap: 4px;

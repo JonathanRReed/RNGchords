@@ -1132,7 +1132,14 @@ export default function RngChordsApp() {
           <div className="workstation-brand">
             <span className="hero-strip__kicker">RNG Chords</span>
             <h1>Random chord ideas for guitar, piano, and songwriting.</h1>
-            <p>Roll chord progressions, hear them instantly, keep the strongest chords, and export MIDI for arranging.</p>
+            <p>RNG Chords is a chord progression generator that rolls dice for the key, the chord qualities, and the rhythm, then plays the result back in the browser.</p>
+            <ul className="brand-facts">
+              <li>Nine key centers: C, G, D, A, E, F, B&#9837;, E&#9837;, A&#9837;.</li>
+              <li>Six dice sizes, d4 through d20. Advanced rolls use five separate dice.</li>
+              <li>Three complexity settings: Easy, Color, Tension.</li>
+              <li>Six playback sounds and a tempo range of 58 to 164 BPM.</li>
+              <li>MIDI export with the tempo written into the file. Free, no account, and every roll happens in the page.</li>
+            </ul>
           </div>
 
           <div className="workstation-topbar__actions">
