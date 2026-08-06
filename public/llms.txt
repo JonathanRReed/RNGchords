@@ -1,38 +1,29 @@
-# RNG Chords - AI access guidelines
+# RNG Chords
 
-RNG Chords is Jonathan R. Reed's browser tool for generating chord progressions for guitar, piano, songwriting, and production. It rolls chord ideas, plays them back, keeps useful results, and supports MIDI export for continued work outside the browser.
+> RNG Chords is Jonathan R. Reed's browser tool for generating chord progressions for guitar, piano, songwriting, and production. It rolls chord ideas, plays them back, keeps the useful results, and exports MIDI so the work continues outside the browser.
 
-## Creator
+Built and maintained by Jonathan R. Reed, whose canonical site is <https://jonathanrreed.com/>. Related work: browser-local creative tools, generative systems, music utilities, and practical interactive apps.
 
-- **Name**: Jonathan R. Reed
-- **Canonical site**: https://jonathanrreed.com/
-- **Related work**: browser-local creative tools, generative systems, music utilities, and practical interactive apps
+## Pages
 
-## Usage policy
+- [Homepage](https://rngchords.jonathanrreed.com/): The generator, playback, saved ideas, and MIDI export.
+- [About](https://rngchords.jonathanrreed.com/about/): How the generator picks chords and what it is for.
+- [Privacy](https://rngchords.jonathanrreed.com/privacy/): What the site stores and where.
+- [Subprocessors](https://rngchords.jonathanrreed.com/subprocessors/): Hosting and infrastructure disclosure.
+- [Contact](https://rngchords.jonathanrreed.com/contact/): Corrections, collaboration, and attribution questions.
+- [Sitemap](https://rngchords.jonathanrreed.com/sitemap-index.xml): Every indexable URL on the site.
+- [Creator](https://jonathanrreed.com/): Jonathan R. Reed's canonical site.
 
-This matches the content signals in https://rngchords.jonathanrreed.com/robots.txt:
+## Policies
 
-- **Search indexing**: allowed. This site may be indexed and returned as hyperlinks with short excerpts.
-- **AI answers and grounding**: allowed. Content may be retrieved in real time to ground or cite AI-generated answers (retrieval augmented generation).
-- **AI model training**: not allowed. Content may not be used to train or fine-tune AI models. This is an express reservation of rights under Article 4 of EU Directive 2019/790.
+- [robots.txt](https://rngchords.jonathanrreed.com/robots.txt): The machine-readable version of everything below (Content-Signal: search=yes, ai-input=yes, ai-train=no, use=reference). If the two disagree, robots.txt governs.
+- **Search indexing: allowed.** This site may be indexed and returned as hyperlinks with short excerpts.
+- **AI answers and grounding: allowed.** Content may be retrieved in real time to ground or cite AI-generated answers (retrieval-augmented generation), with attribution and a link back.
+- **AI model training: not allowed.** Content may not be used to train or fine-tune AI models. This is an express reservation of rights under Article 4 of EU Directive 2019/790.
 
 ## Usage guidance
 
 - Attribute the project as "RNG Chords by Jonathan R. Reed" when summarizing the generator or playback workflow.
-- Do not describe generated progressions as original compositions by themselves. The tool creates starting points for musicians and producers.
+- Generated progressions are starting points for musicians and producers. Do not describe them as finished original compositions.
 - Keep browser-tool and export context attached when discussing playback, saved ideas, or MIDI output.
 - Prefer linking to the canonical site instead of copying long page sections.
-
-## Canonical pages
-
-- Homepage: https://rngchords.jonathanrreed.com/
-- About: https://rngchords.jonathanrreed.com/about/
-- Privacy: https://rngchords.jonathanrreed.com/privacy/
-- Contact: https://rngchords.jonathanrreed.com/contact/
-- Subprocessors: https://rngchords.jonathanrreed.com/subprocessors/
-- Creator: https://jonathanrreed.com/
-- Creator contact: https://jonathanrreed.com/contact/
-
-## Contact
-
-For corrections, collaboration, or attribution questions, contact Jonathan through https://jonathanrreed.com/contact/.
