@@ -18,7 +18,7 @@ const authorSameAs = [
 	"https://github.com/JonathanRReed",
 ];
 const publishedDate = "2026-04-21";
-const modifiedDate = "2026-08-06";
+const modifiedDate = "2026-08-21";
 const author = {
 	"@type": "Person",
 	name: "Jonathan R. Reed",
@@ -44,42 +44,22 @@ const structuredData = {
 	creator: author,
 };
 
-// WebApplication JSON-LD. Every claim below is stated somewhere on this page:
-// the generator controls themselves or the "How RNG Chords works" section.
-const applicationData = {
+// Project-level JSON-LD. The tool has no independent ratings or reviews, so it
+// deliberately avoids the SoftwareApplication rich-result type.
+const creativeWorkData = {
 	"@context": "https://schema.org",
-	"@type": "WebApplication",
-	"@id": `${pageUrl}#webapp`,
+	"@type": "CreativeWork",
+	"@id": `${pageUrl}#project`,
 	name: "RNG Chords",
 	description: pageDescription,
 	url: pageUrl,
 	image: socialImage,
-	applicationCategory: "MultimediaApplication",
-	applicationSubCategory: "Music",
-	operatingSystem: "Any device with a modern web browser",
-	browserRequirements: "Requires JavaScript.",
 	isAccessibleForFree: true,
-	// The tool is free to use, which the "How it works" section says in plain
-	// text. No rating or review markup: none exist.
-	offers: {
-		"@type": "Offer",
-		price: "0",
-		priceCurrency: "USD",
-	},
 	inLanguage: "en-US",
 	datePublished: publishedDate,
 	dateModified: modifiedDate,
 	isPartOf: { "@id": `${pageUrl}#website` },
-	featureList: [
-		"Easy rolls that turn each die into one chord",
-		"Advanced rolls with separate dice for root path, quality, extensions, inversions, and rhythm",
-		"Manual builder for typing chord names or stacking a chord by hand",
-		"Easy, Color, and Tension complexity settings",
-		"In-browser playback with six sounds, loop, and a 58 to 164 BPM tempo range",
-		"Keep individual chords and reroll the rest",
-		"A, B, and C idea slots for comparing takes",
-		"MIDI export with the tempo written into the file",
-	],
+	keywords: "chord progression generator, songwriting, music production, MIDI export",
 	author,
 	creator: author,
 };
@@ -130,7 +110,7 @@ const applicationData = {
 		<script
 			is:inline
 			type="application/ld+json"
-			set:html={JSON.stringify(applicationData).replace(/</g, "\\u003c")}
+			set:html={JSON.stringify(creativeWorkData).replace(/</g, "\\u003c")}
 		/>
 	</head>
 	<body>

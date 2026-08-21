@@ -3,6 +3,7 @@
   "type": "module",
   "version": "0.0.1",
   "license": "MIT",
+  "packageManager": "bun@1.4.0",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
@@ -14,20 +15,20 @@
   },
   "dependencies": {
     "@tonejs/midi": "^2.0.28",
-    "astro": "6.1.9",
-    "motion": "^12.40.0",
-    "react": "^19.2.7",
-    "react-dom": "^19.2.7",
+    "astro": "7.2.4",
+    "motion": "^12.43.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
     "tone": "^15.1.22"
   },
   "devDependencies": {
-    "@astrojs/check": "0.9.8",
-    "@astrojs/react": "5.0.4",
-    "@types/node": "^25.9.1",
-    "@types/react": "^19.2.16",
-    "@types/react-dom": "^19.2.3",
+    "@astrojs/check": "0.9.10",
+    "@astrojs/react": "6.0.4",
+    "@types/node": "^25.9.5",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.8"
+    "vitest": "^4.1.11"
   },
   "overrides": {
     "smol-toml": ">=1.6.1",
