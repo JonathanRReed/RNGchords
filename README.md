@@ -1,137 +1,39 @@
 # RNG Chords
 
-RNG Chords is a browser-based random chord generator for guitarists, pianists, songwriters, and producers.
-
 Dice pick the chords, the browser plays them back, and MIDI export gets the idea out. Keep what works, reroll the rest.
 
-## Why it exists
+RNG Chords is for sketching progressions without opening a DAW. Choose guided or advanced generation, enter chords yourself, or mix both.
 
-Sometimes you want a fresh progression without opening a full DAW session or overthinking theory first.
+## Try a progression
 
-RNG Chords helps you:
+Choose an instrument focus and `Easy`, `Color`, or `Tension` complexity. Click `Roll New Idea` or `Roll This Setup`. `Surprise Me` also randomizes the musical setup and playback instrument.
 
-- Roll a first idea in seconds
-- Keep the chords that feel good
-- Reroll the weak spots
-- Hear the result right away
-- Export MIDI when the idea is worth keeping
+Use `Keep` to pin a chord, `Reroll` to replace one slot, or `Reroll Unlocked` to change everything unpinned. Save versions in `A`, `B`, and `C`; select a filled slot to restore it. The app also restores the last session after a refresh.
 
-## Who it is for
+Pick an instrument, tempo, and rhythm `Feel`, then use `Play`, `Stop`, and `Loop`. Preview individual chords or turn on theory labels. The manual builder also accepts symbols such as `Cmaj7, Am7, D7, Gmaj7`. Use `Export MIDI` to continue in another app.
 
-- Guitarists looking for voicings outside the usual shapes
-- Pianists who want color without menu-diving through plugins
-- Songwriters stuck on a verse, a chorus, or a bridge
-- Producers sketching harmony before they arrange anything
+| Key | Action |
+| --- | --- |
+| `Space` | Play or stop |
+| `←` / `→` | Preview the neighboring chord |
+| `Enter` | Replay the selected chord |
 
-## What it does
+Browser audio may need an initial click before it can play. Musical judgment stays with you; a generated progression is a starting point.
 
-- Roll guided or advanced chord progressions
-- Preview single chords and play full ideas in the browser
-- Switch between multiple playback instruments
-- Keep or reroll individual chords
-- Save idea snapshots into `A`, `B`, and `C` slots
-- Restore your last creative session after refresh
-- Change rhythm feel without rebuilding the whole progression
-- Toggle lightweight theory labels
-- Build chords manually or paste typed chord symbols
-- Export ideas as MIDI
+## Develop
 
-## Example outcomes
-
-Depending on complexity and tempo, a roll can land anywhere from a bright indie-pop lift to a slower neo-soul drift to something darker with more tension in it.
-
-## Tech stack
-
-- Astro
-- React
-- Motion
-- Tone.js
-- Bun
-
-## Getting started
-
-Install dependencies:
+The app uses Astro, React, Motion, Tone.js, and Bun.
 
 ```sh
 bun install
-```
-
-Start the dev server:
-
-```sh
 bun run dev
 ```
 
-Build for production:
-
 ```sh
+bun run lint && bun run typecheck && bun test
 bun run build
 ```
 
-Run the full check suite:
+Components, music logic, routes, and styles live under `src/`. Tests are in `tests/`; static assets are in `public/`.
 
-```sh
-bun run lint && bun run typecheck && bun test
-```
-
-### Start fast
-
-- Pick an instrument focus that matches how you play
-- Choose `Easy`, `Color`, or `Tension` chord complexity
-- Click `Roll New Idea` or `Surprise Me`
-
-### Roll ideas
-
-- Use `Roll New Idea` or `Roll This Setup` depending on where you are in the app
-- Use `Surprise Me` to randomize the musical setup and playback instrument
-
-### Shape the progression
-
-- Use `Keep` to pin a chord you like
-- Use `Reroll` on a single slot for a fresh replacement
-- Use `Reroll Unlocked` to refresh only the chords you did not keep
-
-### Compare versions
-
-- Save the current idea into slot `A`, `B`, or `C`
-- Click a filled slot to load that saved version back in
-
-### Play and preview
-
-- Pick an instrument and tempo in the playback panel
-- Change the rhythm `Feel` to reshape playback phrasing
-- Use `Play`, `Stop`, and `Loop` to audition ideas
-- Use `Export MIDI` when you want to continue elsewhere
-
-### Manual input
-
-- Use the manual builder if you already hear a chord shape in your head
-- Paste typed chord symbols like `Cmaj7, Am7, D7, Gmaj7`
-- Mix manual input with rolled ideas when you want a more directed progression
-
-### Keyboard shortcuts
-
-- `Space`: play or stop
-- `←` / `→`: preview neighboring chords
-- `Enter`: replay the selected chord preview
-
-## Project structure
-
-```text
-/
-├── docs/
-├── public/
-├── src/
-│   ├── components/
-│   ├── lib/
-│   ├── pages/
-│   └── styles/
-├── tests/
-└── package.json
-```
-
-## Notes
-
-- The app is built for sketching, so most of the theory decisions stay with you
-- Playback uses browser audio, so the first interaction may need to unlock audio on some browsers
-- Social sharing metadata becomes fully absolute when `SITE_URL` is set for production
+Set `SITE_URL` in production so social metadata uses absolute URLs.
