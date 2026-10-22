@@ -19,6 +19,8 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Chord names like G#m13 read as one word only with lining figures. */
+  font-variant-numeric: lining-nums;
 }
 
 html[data-font='dyslexic'] body {

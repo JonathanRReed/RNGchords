@@ -212,7 +212,7 @@ input[type='range'] {
 .slider-row output {
   min-width: 4ch;
   color: var(--ink);
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: lining-nums tabular-nums;
   font-size: 0.86rem;
   text-align: right;
 }
@@ -732,44 +732,4 @@ input[type='range'] {
 .font-option input {
   margin-top: 4px;
   accent-color: var(--accent-solid);
-}
-
-/* ---------- Guide ---------- */
-
-.guide {
-  display: grid;
-  gap: 14px;
-  width: min(760px, 100% - 32px);
-  margin: 64px auto 0;
-}
-
-.guide h3 {
-  margin-top: 14px;
-}
-
-.guide p,
-.guide ul {
-  max-width: 65ch;
-  color: var(--ink-2);
-  line-height: 1.75;
-}
-
-.guide ul {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-  padding-left: 1.2rem;
-}
-
-.guide strong {
-  color: var(--ink);
-}
-
-.guide code {
-  padding: 1px 6px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--panel-2);
-  font-size: 0.9em;
-  white-space: nowrap;
 }

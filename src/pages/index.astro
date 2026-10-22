@@ -19,7 +19,7 @@ const authorSameAs = [
 	"https://github.com/JonathanRReed",
 ];
 const publishedDate = "2026-04-21";
-const modifiedDate = "2026-10-21";
+const modifiedDate = "2026-10-22";
 const author = {
 	"@type": "Person",
 	name: "Jonathan R. Reed",
@@ -68,44 +68,6 @@ const creativeWorkData = {
 
 <Base title={pageTitle} description={pageDescription} path="/" jsonLd={[structuredData, creativeWorkData]} author>
 	<RngChordsApp client:load />
-
-	<section class="guide" aria-labelledby="how-it-works">
-		<h2 id="how-it-works">How the chords are picked</h2>
-
-		<p>
-			In Easy mode each die becomes one chord, and its size (d4 up to d20) sets
-			how far that chord can wander. Advanced mode uses five dice, one each for
-			the root, quality, extensions, inversion, and rhythm. Manual mode skips
-			the dice: type something like <code>Cmaj9, Am11, D7b9, G13</code> or build
-			a chord from parts.
-		</p>
-		<p>
-			The dice total picks the key from nine centers: C, G, D, A, E, F,
-			B&#9837;, E&#9837;, and A&#9837;. Every root comes from that key's major
-			scale and the quality is rolled separately, so a minor chord can land where
-			a major one "should" be.
-		</p>
-
-		<h3>Chord style</h3>
-		<ul>
-			<li>
-				<strong>Simple</strong> uses major, minor, and dominant chords with at
-				most a 6, 7, or maj7 on top.
-			</li>
-			<li>
-				<strong>Color</strong> adds sus4, diminished, and augmented chords, plus
-				9ths, 11ths, 13ths, and altered notes.
-			</li>
-			<li>
-				<strong>Tension</strong> gives every chord an extension, allows deeper
-				inversions, and lets a chord shrink to an eighth note.
-			</li>
-		</ul>
-		<p>
-			Everything runs in your browser, and your last idea is saved in local
-			storage. More background is on the <a href="/about/">about page</a>.
-		</p>
-	</section>
 
 	<SiteFooter />
 </Base>

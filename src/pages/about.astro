@@ -5,7 +5,7 @@ const title = "About RNG Chords | Jonathan R. Reed";
 const description =
 	"RNG Chords is a free chord progression generator by Jonathan R. Reed. Dice pick the chords, and you decide which ones stay.";
 const published = "2026-04-21";
-const modified = "2026-08-04";
+const modified = "2026-10-22";
 const author = {
 	"@type": "Person",
 	name: "Jonathan R. Reed",
@@ -51,5 +51,56 @@ const structuredData = {
 		written often tells you what you wanted in that slot. It also works as a
 		practice prompt: reroll until you land in a key you rarely play in, then
 		work the progression out by ear.
+	</p>
+
+	<h2>How the chords are picked</h2>
+	<p>Every roll starts with dice. There are three ways to use them.</p>
+	<ul>
+		<li>
+			<strong>Easy</strong> turns each die into one chord. A die's size, from d4
+			up to d20, sets how far that chord can wander from the key.
+		</li>
+		<li>
+			<strong>Advanced</strong> uses five dice, one each for the root, quality,
+			extensions, inversion, and rhythm.
+		</li>
+		<li>
+			<strong>Manual</strong> skips the dice. Type something like
+			<code>Cmaj9, Am11, D7b9, G13</code> or build a chord from parts.
+		</li>
+	</ul>
+
+	<h3>The key</h3>
+	<p>
+		The dice total picks the key from nine centers: C, G, D, A, E, F, B&#9837;,
+		E&#9837;, and A&#9837;. Every root comes from that key's major scale and the
+		quality is rolled separately, so a minor chord can land where a major one
+		"should" be. You can also pin the key yourself and every roll will land in it.
+	</p>
+
+	<h3>Chord style</h3>
+	<p>This changes what the dice can pick from. It doesn't change the key.</p>
+	<ul>
+		<li>
+			<strong>Simple</strong> uses major, minor, and dominant chords with at
+			most a 6, 7, or maj7 on top.
+		</li>
+		<li>
+			<strong>Color</strong> adds sus4, diminished, and augmented chords, plus
+			9ths, 11ths, 13ths, and altered notes.
+		</li>
+		<li>
+			<strong>Tension</strong> gives every chord an extension, allows deeper
+			inversions, and lets a chord shrink to an eighth note.
+		</li>
+	</ul>
+
+	<h3>Keeping what you roll</h3>
+	<p>
+		Pin the chords you like and reroll the rest. Copy the chart as plain text,
+		copy a link that opens the same progression, or export a MIDI file with the
+		tempo already set. Everything runs in your browser, and your last idea is
+		saved in local storage. See the <a href="/privacy/">privacy page</a> for
+		the details.
 	</p>
 </InfoPage>
