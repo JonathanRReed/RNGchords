@@ -109,7 +109,9 @@ describe('transposing', () => {
     const inBb = transposeToKey(base, 'Bb')
 
     expect(inBb.keyCenter).toBe('Bb')
-    expect(inBb.chords.flatMap((chord) => chord.notes).some((note) => note.includes('#'))).toBe(false)
+    expect(inBb.chords.some((chord) => chord.root.includes('#'))).toBe(false)
+    expect(parseChordSymbol('Gm6').notes).toEqual(['G', 'Bb', 'D', 'E'])
+    expect(parseChordSymbol('Bm').notes).toEqual(['B', 'D', 'F#'])
   })
 })
 

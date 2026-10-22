@@ -7,7 +7,7 @@ import "../styles/table.css";
 
 const pageTitle = "RNG Chords | Random Chord Generator";
 const pageDescription =
-	"Generate chord progressions for guitar, piano, songwriting, and production. Roll ideas, hear them instantly, keep the best chords, and export MIDI.";
+	"Roll dice to get a chord progression. Keep the chords you like, reroll the rest, and download the result as a MIDI file. Free, no account.";
 const pageUrl = Astro.site
 	? new URL("/", Astro.site).toString()
 	: "https://rngchords.jonathanrreed.com/";
@@ -60,7 +60,7 @@ const creativeWorkData = {
 	datePublished: publishedDate,
 	dateModified: modifiedDate,
 	isPartOf: { "@id": `${pageUrl}#website` },
-	keywords: "chord progression generator, songwriting, music production, MIDI export",
+	keywords: "random chord generator, chord progression generator, dice, MIDI export",
 	author,
 	creator: author,
 };
@@ -113,20 +113,23 @@ const creativeWorkData = {
 
 		<h3>Working with a roll</h3>
 		<p>
-			Press Space to hear it before you judge it. Tempo runs from 58 to 164
-			BPM, and six sounds are built in, because a stack that's crowded on a
-			bright piano can sit fine on a pad.
+			Press Space to hear the progression before you judge it. Tempo runs from
+			58 to 164 BPM. A chord that sounds crowded on a bright piano can sound
+			fine on a pad, so try the other sounds before you reroll.
 		</p>
 		<p>
 			<strong>Keep</strong> pins a chord and <strong>Reroll unkept</strong>
 			rolls the others, so you can hold two you like and hunt for the rest.
 			Save versions to A, B, or C to compare takes. <strong>Export MIDI</strong>
-			writes a .mid file with the tempo already set.
+			writes a .mid file with the tempo already set. <strong>Copy chart</strong>
+			gives you the chord names as plain text, and <strong>Copy link</strong>
+			gives you a URL that opens the same progression.
 		</p>
 		<p>
-			Everything happens in your browser, and your last idea is saved in local
-			storage. It's free, with no account. More background is on the
-			<a href="/about/">about page</a>.
+			The chords are just notes, so play them on a guitar, a keyboard, a
+			ukulele, or load the MIDI into whatever you use. Everything runs in your
+			browser, and your last idea is saved in local storage. More background is
+			on the <a href="/about/">about page</a>.
 		</p>
 	</section>
 

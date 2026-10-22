@@ -571,7 +571,6 @@ html[data-theme='glass'] .chord-card {
 }
 
 html[data-theme='glass'] .notes li,
-html[data-theme='glass'] .tags li,
 html[data-theme='glass'] .chord-card__meta {
   font-family: var(--die-font);
 }

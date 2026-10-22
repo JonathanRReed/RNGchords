@@ -7,6 +7,8 @@ import { toPitchClass } from '../../lib/music/chords'
 import { CloseIcon } from './icons'
 import { PianoStrip } from './PianoStrip'
 
+const INVERSION_LABELS = ['', '1st inversion', '2nd inversion', '3rd inversion']
+
 interface ChordCardProps {
   chord: ChordDescriptor
   index: number
@@ -14,7 +16,6 @@ interface ChordCardProps {
   selected: boolean
   playing: boolean
   kept: boolean
-  showTheory: boolean
   onKeep: (index: number) => void
   onPreview: (index: number) => void
   onReroll: (index: number) => void
@@ -28,20 +29,19 @@ export const ChordCard = memo(function ChordCard({
   selected,
   playing,
   kept,
-  showTheory,
   onKeep,
   onPreview,
   onReroll,
   onRemove,
 }: ChordCardProps) {
-  const [numeral, ...theory] = getTheoryTags(chord, keyCenter)
+  const [numeral] = getTheoryTags(chord, keyCenter)
 
   return (
     <article className="chord-card" data-selected={selected || undefined} data-playing={playing || undefined}>
       <header className="chord-card__head">
         <span className="chord-card__index">{index + 1}</span>
         <h3>{chord.label}</h3>
-        <span className="chord-card__numeral" title="Place in the key">
+        <span className="chord-card__numeral" title={`Roman numeral: where this root sits in the key of ${keyCenter}`}>
           {numeral}
         </span>
         <button type="button" className="icon-btn" onClick={() => onRemove(index)} aria-label={`Remove ${chord.label}`}>
@@ -57,17 +57,10 @@ export const ChordCard = memo(function ChordCard({
 
       <PianoStrip midi={chord.midi} rootPitchClass={toPitchClass(chord.root)} />
 
-      {showTheory ? (
-        <ul className="tags" aria-label="Theory">
-          {theory.map((tag) => (
-            <li key={tag}>{tag}</li>
-          ))}
-        </ul>
-      ) : null}
-
       <p className="chord-card__meta">
         <span>{RHYTHM_LABELS[chord.rhythmBeats] ?? `${chord.rhythmBeats} beats`}</span>
         <span>{extensionSummary(chord.extensions)}</span>
+        {chord.inversion > 0 ? <span>{INVERSION_LABELS[chord.inversion] ?? `Inversion ${chord.inversion}`}</span> : null}
       </p>
 
       <div className="chord-card__actions">

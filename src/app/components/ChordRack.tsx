@@ -11,7 +11,6 @@ interface ChordRackProps {
   highlightedIndex: number | null
   playingIndex: number | null
   keptSlots: number[]
-  showTheory: boolean
   sections: Record<SectionId, SectionSnapshot | null>
   activeSection: SectionId
   onPreview: (index: number) => void
@@ -26,7 +25,6 @@ export const ChordRack = memo(function ChordRack({
   highlightedIndex,
   playingIndex,
   keptSlots,
-  showTheory,
   sections,
   activeSection,
   onPreview,
@@ -47,9 +45,6 @@ export const ChordRack = memo(function ChordRack({
           </button>
           <button type="button" className="btn btn--sm" onClick={onShare} disabled={chords.length === 0}>
             Copy link
-          </button>
-          <button type="button" className="btn btn--sm" aria-pressed={showTheory} onClick={() => actions.setShowTheory(!showTheory)}>
-            Show theory
           </button>
           <button type="button" className="btn btn--sm" onClick={actions.clear} disabled={chords.length === 0}>
             Clear
@@ -92,7 +87,6 @@ export const ChordRack = memo(function ChordRack({
               selected={index === highlightedIndex}
               playing={index === playingIndex}
               kept={keptSlots.includes(index)}
-              showTheory={showTheory}
               onKeep={actions.toggleKeep}
               onPreview={onPreview}
               onReroll={actions.rerollChord}

@@ -1,5 +1,4 @@
 import { PLAYBACK_INSTRUMENT_COPY, type PlaybackInstrument } from '../lib/audio/playback'
-import { INSTRUMENT_FOCUS_COPY, type InstrumentFocus } from '../lib/music/playground'
 import type { ChordComplexity } from '../lib/music/types'
 import type { Mode, SectionId } from './types'
 
@@ -36,7 +35,6 @@ export const COMPLEXITY_COPY: Record<ChordComplexity, { label: string; detail: s
 export const MODE_OPTIONS = Object.keys(MODE_COPY) as Mode[]
 export const COMPLEXITY_OPTIONS = Object.keys(COMPLEXITY_COPY) as ChordComplexity[]
 export const INSTRUMENT_OPTIONS = Object.keys(PLAYBACK_INSTRUMENT_COPY) as PlaybackInstrument[]
-export const FOCUS_OPTIONS = Object.keys(INSTRUMENT_FOCUS_COPY) as InstrumentFocus[]
 export const SECTION_IDS: readonly SectionId[] = ['A', 'B', 'C']
 
 export const SURPRISE_TEMPOS = [68, 74, 82, 88, 96, 104, 112, 120, 128, 136] as const

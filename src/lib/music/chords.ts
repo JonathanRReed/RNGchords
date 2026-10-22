@@ -129,6 +129,11 @@ export function buildIntervals(quality: ChordQuality, extensions: ExtensionToken
       continue
     }
 
+    if (extension === '7' && quality === 'dim') {
+      intervals.push(9)
+      continue
+    }
+
     intervals.push(...EXTENSION_INTERVALS[extension])
   }
 
@@ -196,6 +201,59 @@ export function createChordLabel(root: RootNote, quality: ChordQuality, extensio
   return `${label}/${bass}`
 }
 
+const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'] as const
+const LETTER_PITCH = [0, 2, 4, 5, 7, 9, 11]
+
+/** How many letter names above the root an interval sits (a 3rd is 2, a 5th is 4). */
+function letterSteps(interval: number, quality: ChordQuality, extensions: ExtensionToken[]): number {
+  switch (interval) {
+    case 0:
+      return 0
+    case 2:
+    case 13:
+    case 14:
+    case 15:
+      return 1
+    case 3:
+    case 4:
+      return 2
+    case 5:
+    case 17:
+    case 18:
+      return 3
+    case 6:
+    case 7:
+    case 8:
+      return 4
+    case 9:
+      return quality === 'dim' && !extensions.includes('6') ? 6 : 5
+    case 20:
+    case 21:
+      return 5
+    default:
+      return 6
+  }
+}
+
+/** Spells a chord tone by letter, so Gm gets Bb rather than A#. Returns null when that needs a double accidental. */
+function spellInterval(root: RootNote, interval: number, steps: number): RootNote | null {
+  const rootLetter = LETTERS.indexOf(root[0] as (typeof LETTERS)[number])
+  const letterIndex = (rootLetter + steps) % 7
+  const pitch = (toPitchClass(root) + interval) % 12
+  const drift = ((pitch - LETTER_PITCH[letterIndex]! + 18) % 12) - 6
+
+  if (drift === 0) {
+    return LETTERS[letterIndex]!
+  }
+
+  if (drift === 1 || drift === -1) {
+    const spelled = `${LETTERS[letterIndex]}${drift === 1 ? '#' : 'b'}` as RootNote
+    return spelled in NOTE_TO_PITCH ? spelled : null
+  }
+
+  return null
+}
+
 export function createChordDescriptor(seed: ChordSeed): ChordDescriptor {
   const preferFlat = seed.flats ?? (prefersFlats(seed.root) || (seed.bass ? prefersFlats(seed.bass) : false))
   const rootPitch = toPitchClass(normalizeEnharmonic(seed.root, preferFlat))
@@ -203,7 +261,22 @@ export function createChordDescriptor(seed: ChordSeed): ChordDescriptor {
   const baseMidi = intervals.map((interval) => 48 + rootPitch + interval)
   const withBass = applyBassVoice(baseMidi, seed.bass, preferFlat)
   const midi = applyInversion(withBass, seed.inversion ?? 0)
-  const notes = midi.map((note) => fromPitchClass(note, preferFlat))
+  const spelling = new Map<number, RootNote>()
+  const spelledRoot = normalizeEnharmonic(seed.root, preferFlat)
+
+  for (const interval of intervals) {
+    const name = spellInterval(spelledRoot, interval, letterSteps(interval, seed.quality, seed.extensions))
+
+    if (name) {
+      spelling.set((rootPitch + interval) % 12, name)
+    }
+  }
+
+  if (seed.bass) {
+    spelling.set(toPitchClass(seed.bass), normalizeEnharmonic(seed.bass, preferFlat))
+  }
+
+  const notes = midi.map((note) => spelling.get(note % 12) ?? fromPitchClass(note, preferFlat))
 
   return {
     ...seed,

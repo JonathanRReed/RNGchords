@@ -6,7 +6,7 @@ import { createAdvancedRoll, createGuidedRoll } from '../lib/music/generator'
 import { applyRhythmFeel, rerollChordFromKey, type RhythmFeel } from '../lib/music/ideas'
 import { parseProgressionInput } from '../lib/music/parser'
 import { transposeProgression, transposeToKey } from '../lib/music/transpose'
-import { PLAYGROUND_PRESETS, type InstrumentFocus, type PlaygroundPreset } from '../lib/music/playground'
+import { PLAYGROUND_PRESETS, type PlaygroundPreset } from '../lib/music/playground'
 import type {
   AdvancedParameter,
   BuilderState,
@@ -18,7 +18,6 @@ import type {
 import {
   COMPLEXITY_COPY,
   DEFAULT_STATUS,
-  FOCUS_OPTIONS,
   INSTRUMENT_OPTIONS,
   COMPLEXITY_OPTIONS,
   MAX_GUIDED_DICE,
@@ -30,7 +29,7 @@ import type { Mode, SectionId, WorkState } from './types'
 
 const SAVE_DELAY_MS = 400
 
-type PresetOverrides = Partial<Pick<WorkState, 'complexity' | 'tempo' | 'instrumentFocus' | 'playbackInstrument'>> & { status?: string }
+type PresetOverrides = Partial<Pick<WorkState, 'complexity' | 'tempo' | 'playbackInstrument'>> & { status?: string }
 
 function pickRandom<T>(items: readonly T[]): T {
   return items[Math.floor(Math.random() * items.length)] as T
@@ -120,14 +119,19 @@ export function useWorkstation() {
   const actions = useMemo(() => {
     const patch = (changes: Partial<WorkState>) => setState((current) => ({ ...current, ...changes }))
 
-    const commit = (progression: ProgressionResult, mode: Mode, message: string, extra: Partial<WorkState> = {}) => {
+    const commit = (
+      progression: ProgressionResult,
+      mode: Mode,
+      message: string | ((placed: ProgressionResult) => string),
+      extra: Partial<WorkState> = {},
+    ) => {
       const { keyLock } = stateRef.current
       const placed = keyLock && mode !== 'manual' ? transposeToKey(progression, keyLock) : progression
 
       setState((current) => ({ ...current, ...extra, progression: placed, mode, keptChordSlots: [] }))
       setManualIssues([])
       setRollId((id) => id + 1)
-      setStatus(message)
+      setStatus(typeof message === 'function' ? message(placed) : message)
     }
 
     const editChords = (chords: ChordDescriptor[], message: string, explanation?: string[]) => {
@@ -146,12 +150,12 @@ export function useWorkstation() {
 
     const rollGuided = (complexity: ChordComplexity, message?: string) => {
       const next = createGuidedRoll({ faceCounts: stateRef.current.guidedFaces }, complexity)
-      commit(next.progression, 'guided', message ?? `Rolled ${chordList(next.progression.chords)}.`)
+      commit(next.progression, 'guided', message ?? ((placed) => `Rolled ${chordList(placed.chords)}.`))
     }
 
     const rollAdvanced = (complexity: ChordComplexity, message?: string) => {
       const next = createAdvancedRoll(stateRef.current.advancedConfig, complexity)
-      commit(next.progression, 'advanced', message ?? `Rolled ${chordList(next.progression.chords)}.`, { advancedRoll: next })
+      commit(next.progression, 'advanced', message ?? ((placed) => `Rolled ${chordList(placed.chords)}.`), { advancedRoll: next })
     }
 
     const loadPreset = (preset: PlaygroundPreset, overrides: PresetOverrides = {}) => {
@@ -161,7 +165,6 @@ export function useWorkstation() {
         activePresetId: preset.id,
         complexity,
         tempo: overrides.tempo ?? preset.tempo,
-        instrumentFocus: overrides.instrumentFocus ?? preset.instrumentFocus,
         ...(overrides.playbackInstrument ? { playbackInstrument: overrides.playbackInstrument } : {}),
       }
 
@@ -191,10 +194,8 @@ export function useWorkstation() {
       setMode: (mode: Mode) => patch({ mode }),
       setTempo: (tempo: number) => patch({ tempo }),
       setInstrument: (playbackInstrument: PlaybackInstrument) => patch({ playbackInstrument }),
-      setFocus: (instrumentFocus: InstrumentFocus) => patch({ instrumentFocus }),
       setFeel: (rhythmFeel: RhythmFeel) => patch({ rhythmFeel }),
       setLoop: (loopEnabled: boolean) => patch({ loopEnabled }),
-      setShowTheory: (showTheory: boolean) => patch({ showTheory }),
       setKeyLock: (keyLock: RootNote | null) => {
         const { progression, mode } = stateRef.current
 
@@ -254,14 +255,12 @@ export function useWorkstation() {
       surprise: () => {
         const preset = pickRandom(PLAYGROUND_PRESETS)
         const playbackInstrument = pickRandom(INSTRUMENT_OPTIONS)
-        const instrumentFocus = pickRandom(FOCUS_OPTIONS)
         const complexity = pickRandom(COMPLEXITY_OPTIONS)
         const tempo = pickRandom(SURPRISE_TEMPOS)
 
         loadPreset(preset, {
           complexity,
           tempo,
-          instrumentFocus,
           playbackInstrument,
           status: `${preset.label} at ${tempo} BPM on ${PLAYBACK_INSTRUMENT_COPY[playbackInstrument].label}.`,
         })
@@ -386,7 +385,7 @@ export function useWorkstation() {
 
       clear: () => {
         setState((current) => ({ ...current, progression: { ...current.progression, chords: [], rollSummary: [] }, keptChordSlots: [] }))
-        setStatus('Cleared. Roll again when you want a new idea.')
+        setStatus('Cleared.')
       },
 
       saveSection: () => {
@@ -403,7 +402,6 @@ export function useWorkstation() {
               advancedRoll: latest.advancedRoll,
               complexity: latest.complexity,
               guidedFaces: [...latest.guidedFaces],
-              instrumentFocus: latest.instrumentFocus,
               mode: latest.mode,
               playbackInstrument: latest.playbackInstrument,
               progression: latest.progression,

@@ -267,8 +267,12 @@ input[type='range'] {
 /* ---------- Intro and modes ---------- */
 
 .intro {
-  max-width: 44rem;
-  padding: 8px 0 24px;
+  max-width: 52rem;
+  padding: 4px 0 20px;
+}
+
+.intro h1 {
+  font-size: clamp(2rem, 4.6vw, 3.2rem);
 }
 
 .intro p {
@@ -557,8 +561,7 @@ input[type='range'] {
   font-weight: 700;
 }
 
-.notes,
-.tags {
+.notes {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
@@ -575,15 +578,6 @@ input[type='range'] {
   font-size: 0.82rem;
   font-weight: 700;
   text-align: center;
-}
-
-.tags li {
-  padding: 1px 8px;
-  border: 1px solid var(--accent);
-  border-radius: var(--r-ctl);
-  color: var(--accent);
-  font-size: 0.76rem;
-  font-weight: 600;
 }
 
 .chord-card__meta {
@@ -606,14 +600,6 @@ input[type='range'] {
   display: grid;
   gap: 12px;
   padding: 16px;
-}
-
-.tips__head {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
 }
 
 .tips ul {

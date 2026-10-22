@@ -1,6 +1,5 @@
 import type { PlaybackInstrument } from '../lib/audio/playback'
 import type { RhythmFeel } from '../lib/music/ideas'
-import type { InstrumentFocus } from '../lib/music/playground'
 import type {
   AdvancedDiceConfig,
   AdvancedRollResult,
@@ -20,7 +19,6 @@ export interface SectionSnapshot {
   advancedRoll: AdvancedRollResult
   complexity: ChordComplexity
   guidedFaces: number[]
-  instrumentFocus: InstrumentFocus
   mode: Mode
   playbackInstrument: PlaybackInstrument
   progression: ProgressionResult
@@ -36,7 +34,6 @@ export interface WorkState extends SectionSnapshot {
   loopEnabled: boolean
   manualInput: string
   sections: Record<SectionId, SectionSnapshot | null>
-  showTheory: boolean
 }
 
 export interface StageDie {

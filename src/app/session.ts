@@ -4,7 +4,7 @@ import { RHYTHM_FEEL_COPY, type RhythmFeel } from '../lib/music/ideas'
 import { PLAYGROUND_PRESETS } from '../lib/music/playground'
 import { KEY_CHOICES } from '../lib/music/transpose'
 import type { AdvancedRollResult, BuilderState, GuidedRollResult } from '../lib/music/types'
-import { COMPLEXITY_OPTIONS, DEFAULT_MANUAL_INPUT, FOCUS_OPTIONS, INSTRUMENT_OPTIONS, MODE_OPTIONS, SECTION_IDS, SESSION_KEY } from './constants'
+import { COMPLEXITY_OPTIONS, DEFAULT_MANUAL_INPUT, INSTRUMENT_OPTIONS, MODE_OPTIONS, SECTION_IDS, SESSION_KEY } from './constants'
 import type { SectionId, SectionSnapshot, WorkState } from './types'
 
 const RHYTHM_FEELS = Object.keys(RHYTHM_FEEL_COPY) as RhythmFeel[]
@@ -40,7 +40,6 @@ export function createInitialState(): WorkState {
     builder: INITIAL_BUILDER,
     complexity: INITIAL_COMPLEXITY,
     guidedFaces: INITIAL_FACES,
-    instrumentFocus: FIRST_PRESET?.instrumentFocus ?? 'both',
     keptChordSlots: [],
     keyLock: null,
     loopEnabled: false,
@@ -50,7 +49,6 @@ export function createInitialState(): WorkState {
     progression: INITIAL_GUIDED.progression,
     rhythmFeel: 'straight',
     sections: { A: null, B: null, C: null },
-    showTheory: false,
     tempo: FIRST_PRESET?.tempo ?? 92,
   }
 }
@@ -93,7 +91,6 @@ export function readSession(raw: string | null): WorkState | null {
     builder: saved.builder ?? base.builder,
     complexity: pick(saved.complexity, COMPLEXITY_OPTIONS, base.complexity),
     guidedFaces: Array.isArray(saved.guidedFaces) && saved.guidedFaces.length > 0 ? saved.guidedFaces : base.guidedFaces,
-    instrumentFocus: pick(saved.instrumentFocus, FOCUS_OPTIONS, base.instrumentFocus),
     keptChordSlots: Array.isArray(saved.keptChordSlots) ? saved.keptChordSlots : [],
     keyLock: KEY_CHOICES.find((key) => key === saved.keyLock) ?? null,
     loopEnabled: Boolean(saved.loopEnabled),
@@ -103,7 +100,6 @@ export function readSession(raw: string | null): WorkState | null {
     progression: saved.progression as WorkState['progression'],
     rhythmFeel: pick(saved.rhythmFeel, RHYTHM_FEELS, base.rhythmFeel),
     sections,
-    showTheory: Boolean(saved.showTheory),
     tempo: typeof saved.tempo === 'number' ? saved.tempo : base.tempo,
   }
 }

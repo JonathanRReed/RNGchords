@@ -136,7 +136,7 @@ export default function RngChordsApp() {
         <main id="main-content" tabIndex={-1}>
           <section className="intro">
             <h1>Roll the dice, get a chord progression.</h1>
-            <p>A random chord generator for guitar, piano, and songwriting. Hear each roll, keep the chords you like, and export MIDI.</p>
+            <p>Dice pick the key and every chord. Play the result on whatever you own, pin the ones you like, and roll again for the rest.</p>
           </section>
 
           <ModeTabs mode={state.mode} onChange={actions.setMode} />
@@ -173,7 +173,7 @@ export default function RngChordsApp() {
                   </ul>
                   <div className="tray__actions">
                     <button type="button" className="btn btn--primary" onClick={actions.roll}>
-                      Roll the dice
+                      {rollId > 0 ? 'Roll again' : 'Roll the dice'}
                     </button>
                     <button type="button" className="btn btn--tray" onClick={actions.surprise}>
                       Surprise me
@@ -214,7 +214,6 @@ export default function RngChordsApp() {
                 highlightedIndex={player.highlightedIndex}
                 playingIndex={player.playing ? player.activeIndex : null}
                 keptSlots={state.keptChordSlots}
-                showTheory={state.showTheory}
                 sections={state.sections}
                 activeSection={state.activeSection}
                 onPreview={player.preview}
@@ -223,7 +222,7 @@ export default function RngChordsApp() {
                 actions={actions}
               />
 
-              <PlayingTips progression={display} focus={state.instrumentFocus} onFocusChange={actions.setFocus} />
+              <PlayingTips progression={display} />
             </div>
 
             <Controls

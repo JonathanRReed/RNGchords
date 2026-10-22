@@ -1,8 +1,6 @@
 # RNG Chords
 
-Dice pick the chords, the browser plays them back, and MIDI export gets the idea out. Keep what works, reroll the rest.
-
-RNG Chords is for sketching progressions without opening a DAW. Roll with Easy or Advanced dice, or enter chords yourself.
+A chord progression generator that uses dice. It runs in the browser, plays the result back, and exports MIDI. Chords are chords, so it is not tied to any one instrument.
 
 ## Using it
 
@@ -12,7 +10,7 @@ Use `Keep` to pin a chord, `Reroll` to replace one, or `Reroll unkept` to change
 
 Pick a sound, tempo, and rhythm feel, then use `Play`, `Loop`, and `Export MIDI`. Manual mode accepts symbols such as `Cmaj7, Am7, D7, Cm(maj7)`.
 
-Every chord shows its place in the key and the keys it uses on a piano. Click a die to hear its chord. The `-` and `+` beside the key move the whole idea by a half step, and the `Key` setting keeps every roll in one key. `Copy chart` copies the chord names, `Copy link` copies a link that opens the same progression, tempo, and sound, and `Tap tempo` sets the tempo from your taps.
+Every chord shows its place in the key and its notes on a piano strip. Click a die to hear its chord. The `-` and `+` beside the key move the whole idea by a half step, and the `Key` setting keeps every roll in one key. `Copy chart` copies the chord names, `Copy link` copies a link that opens the same progression, tempo, and sound, and `Tap tempo` sets the tempo from your taps.
 
 | Key | Action |
 | --- | --- |
