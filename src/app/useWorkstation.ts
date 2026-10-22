@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { PLAYBACK_INSTRUMENT_COPY, type PlaybackInstrument } from '../lib/audio/playback'
+import { type PlaybackInstrument } from '../lib/audio/playback'
 import { createChordDescriptor } from '../lib/music/chords'
 import { DEFAULT_ADVANCED_FACES } from '../lib/music/constants'
 import { createAdvancedRoll, createGuidedRoll } from '../lib/music/generator'
@@ -29,14 +29,10 @@ import type { Mode, SectionId, WorkState } from './types'
 
 const SAVE_DELAY_MS = 400
 
-type PresetOverrides = Partial<Pick<WorkState, 'complexity' | 'tempo' | 'playbackInstrument'>> & { status?: string }
+type PresetOverrides = Partial<Pick<WorkState, 'complexity' | 'tempo' | 'playbackInstrument'>>
 
 function pickRandom<T>(items: readonly T[]): T {
   return items[Math.floor(Math.random() * items.length)] as T
-}
-
-function chordList(chords: ChordDescriptor[]): string {
-  return chords.map((chord) => chord.label).join(', ')
 }
 
 function summarize(chords: ChordDescriptor[], prefix: string): string[] {
@@ -119,22 +115,17 @@ export function useWorkstation() {
   const actions = useMemo(() => {
     const patch = (changes: Partial<WorkState>) => setState((current) => ({ ...current, ...changes }))
 
-    const commit = (
-      progression: ProgressionResult,
-      mode: Mode,
-      message: string | ((placed: ProgressionResult) => string),
-      extra: Partial<WorkState> = {},
-    ) => {
+    const commit = (progression: ProgressionResult, mode: Mode, extra: Partial<WorkState> = {}) => {
       const { keyLock } = stateRef.current
       const placed = keyLock && mode !== 'manual' ? transposeToKey(progression, keyLock) : progression
 
       setState((current) => ({ ...current, ...extra, progression: placed, mode, keptChordSlots: [] }))
       setManualIssues([])
       setRollId((id) => id + 1)
-      setStatus(typeof message === 'function' ? message(placed) : message)
+      setStatus('')
     }
 
-    const editChords = (chords: ChordDescriptor[], message: string, explanation?: string[]) => {
+    const editChords = (chords: ChordDescriptor[], explanation?: string[]) => {
       setState((current) => ({
         ...current,
         progression: {
@@ -145,22 +136,21 @@ export function useWorkstation() {
         },
       }))
       setRollId((id) => id + 1)
-      setStatus(message)
+      setStatus('')
     }
 
-    const rollGuided = (complexity: ChordComplexity, message?: string) => {
+    const rollGuided = (complexity: ChordComplexity) => {
       const next = createGuidedRoll({ faceCounts: stateRef.current.guidedFaces }, complexity)
-      commit(next.progression, 'guided', message ?? ((placed) => `Rolled ${chordList(placed.chords)}.`))
+      commit(next.progression, 'guided')
     }
 
-    const rollAdvanced = (complexity: ChordComplexity, message?: string) => {
+    const rollAdvanced = (complexity: ChordComplexity) => {
       const next = createAdvancedRoll(stateRef.current.advancedConfig, complexity)
-      commit(next.progression, 'advanced', message ?? ((placed) => `Rolled ${chordList(placed.chords)}.`), { advancedRoll: next })
+      commit(next.progression, 'advanced', { advancedRoll: next })
     }
 
     const loadPreset = (preset: PlaygroundPreset, overrides: PresetOverrides = {}) => {
       const complexity = overrides.complexity ?? preset.complexity
-      const message = overrides.status ?? preset.status
       const extra: Partial<WorkState> = {
         activePresetId: preset.id,
         complexity,
@@ -171,23 +161,23 @@ export function useWorkstation() {
       if (preset.mode === 'guided' && preset.guidedFaces) {
         const guidedFaces = [...preset.guidedFaces]
         const next = createGuidedRoll({ faceCounts: guidedFaces }, complexity)
-        commit(next.progression, 'guided', message, { ...extra, guidedFaces })
+        commit(next.progression, 'guided', { ...extra, guidedFaces })
         return
       }
 
       if (preset.mode === 'advanced' && preset.advancedConfig) {
         const advancedConfig = { chordCount: preset.advancedConfig.chordCount, faceCounts: { ...preset.advancedConfig.faceCounts } }
         const next = createAdvancedRoll(advancedConfig, complexity)
-        commit(next.progression, 'advanced', message, { ...extra, advancedConfig, advancedRoll: next })
+        commit(next.progression, 'advanced', { ...extra, advancedConfig, advancedRoll: next })
       }
     }
 
-    const rerollSlots = (shouldReroll: (index: number) => boolean, message: string) => {
+    const rerollSlots = (shouldReroll: (index: number) => boolean) => {
       const { progression, complexity } = stateRef.current
       const chords = progression.chords.map((chord, index) =>
         shouldReroll(index) ? rerollChordFromKey({ chord, keyCenter: progression.keyCenter, complexity, index }) : chord,
       )
-      editChords(chords, message, [`New pass around ${progression.keyCenter} with ${COMPLEXITY_COPY[complexity].label.toLowerCase()} harmony.`])
+      editChords(chords, [`New pass around ${progression.keyCenter} with ${COMPLEXITY_COPY[complexity].label.toLowerCase()} harmony.`])
     }
 
     return {
@@ -201,13 +191,11 @@ export function useWorkstation() {
 
         if (!keyLock || mode === 'manual' || progression.chords.length === 0) {
           patch({ keyLock })
-          setStatus(keyLock ? `Rolls will land in ${keyLock}.` : 'Rolls can land in any key.')
           return
         }
 
         patch({ keyLock, progression: transposeToKey(progression, keyLock) })
         setRollId((id) => id + 1)
-        setStatus(`Moved to ${keyLock}.`)
       },
       transpose: (semitones: number) => {
         const { progression } = stateRef.current
@@ -218,7 +206,6 @@ export function useWorkstation() {
 
         const next = transposeProgression(progression, semitones)
         patch({ progression: next, keyLock: stateRef.current.keyLock ? next.keyCenter : null })
-        setStatus(`Moved to ${next.keyCenter}.`)
       },
       setManualInput: (manualInput: string) => patch({ manualInput }),
 
@@ -242,11 +229,10 @@ export function useWorkstation() {
           return
         }
 
-        const message = `${label} chords. Here is a new roll.`
         if (mode === 'advanced') {
-          rollAdvanced(complexity, message)
+          rollAdvanced(complexity)
         } else {
-          rollGuided(complexity, message)
+          rollGuided(complexity)
         }
       },
 
@@ -262,7 +248,6 @@ export function useWorkstation() {
           complexity,
           tempo,
           playbackInstrument,
-          status: `${preset.label} at ${tempo} BPM on ${PLAYBACK_INSTRUMENT_COPY[playbackInstrument].label}.`,
         })
       },
 
@@ -312,7 +297,6 @@ export function useWorkstation() {
             keyCenter: chords[0]?.root ?? builder.root,
           },
           'manual',
-          replace ? `Replaced the progression with ${chord.label}.` : `Added ${chord.label}.`,
         )
       },
 
@@ -337,9 +321,9 @@ export function useWorkstation() {
             keyCenter: chords[0]?.root ?? 'C',
           },
           'manual',
-          parsed.issues.length > 0 ? 'Loaded your chords. Some symbols were skipped.' : 'Loaded your chords.',
         )
         setManualIssues(parsed.issues)
+        setStatus(parsed.issues.length > 0 ? 'Some symbols were skipped.' : '')
       },
 
       toggleKeep: (index: number) =>
@@ -350,7 +334,7 @@ export function useWorkstation() {
             : [...current.keptChordSlots, index].sort((left, right) => left - right),
         })),
 
-      rerollChord: (index: number) => rerollSlots((slot) => slot === index, `Rerolled chord ${index + 1}.`),
+      rerollChord: (index: number) => rerollSlots((slot) => slot === index),
 
       rerollUnlocked: () => {
         const { progression, keptChordSlots } = stateRef.current
@@ -359,10 +343,7 @@ export function useWorkstation() {
           return
         }
 
-        rerollSlots(
-          (slot) => !keptChordSlots.includes(slot),
-          keptChordSlots.length > 0 ? 'Rerolled everything except the kept chords.' : 'Rerolled every chord.',
-        )
+        rerollSlots((slot) => !keptChordSlots.includes(slot))
       },
 
       removeChord: (index: number) => {
@@ -380,12 +361,12 @@ export function useWorkstation() {
             keptChordSlots: current.keptChordSlots.filter((slot) => slot !== index).map((slot) => (slot > index ? slot - 1 : slot)),
           }
         })
-        setStatus('Removed the chord.')
+        setStatus('')
       },
 
       clear: () => {
         setState((current) => ({ ...current, progression: { ...current.progression, chords: [], rollSummary: [] }, keptChordSlots: [] }))
-        setStatus('Cleared.')
+        setStatus('')
       },
 
       saveSection: () => {

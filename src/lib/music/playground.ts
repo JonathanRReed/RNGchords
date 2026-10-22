@@ -9,7 +9,6 @@ export interface PlaygroundPreset {
   advancedConfig?: AdvancedDiceConfig
   complexity: ChordComplexity
   tempo: number
-  status: string
 }
 
 export const PLAYGROUND_PRESETS: PlaygroundPreset[] = [
@@ -21,7 +20,6 @@ export const PLAYGROUND_PRESETS: PlaygroundPreset[] = [
     guidedFaces: [6, 6, 8, 8],
     complexity: 'basic',
     tempo: 86,
-    status: 'Campfire glow: four plain chords at 86 bpm.',
   },
   {
     id: 'velvet-keys',
@@ -31,7 +29,6 @@ export const PLAYGROUND_PRESETS: PlaygroundPreset[] = [
     guidedFaces: [8, 10, 12, 12],
     complexity: 'balanced',
     tempo: 74,
-    status: 'Velvet hour: four richer chords at 74 bpm.',
   },
   {
     id: 'happy-accident',
@@ -50,7 +47,6 @@ export const PLAYGROUND_PRESETS: PlaygroundPreset[] = [
     },
     complexity: 'wild',
     tempo: 104,
-    status: 'Happy accident: five tense chords at 104 bpm.',
   },
   {
     id: 'curious-ears',
@@ -60,6 +56,5 @@ export const PLAYGROUND_PRESETS: PlaygroundPreset[] = [
     guidedFaces: [4, 6, 6],
     complexity: 'basic',
     tempo: 96,
-    status: 'Short and sweet: three plain chords at 96 bpm.',
   },
 ]

@@ -32,7 +32,7 @@ export function GuidedSetup({ faces, actions }: GuidedSetupProps) {
           Remove a chord
         </button>
       </div>
-      <p className="hint">Bigger dice wander further from the key. A d4 stays close, a d20 can land almost anywhere.</p>
+      <p className="hint">Bigger dice wander further from the key.</p>
     </div>
   )
 }

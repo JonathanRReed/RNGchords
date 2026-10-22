@@ -84,14 +84,6 @@ html[data-theme='felt'] .tray::after {
   border-radius: calc(var(--r-panel) - 2px);
 }
 
-html[data-theme='felt'] .tray__print {
-  color: oklch(0.9 0.07 90 / 0.7);
-  font-family: var(--font-display);
-  font-size: 1.05rem;
-  font-style: italic;
-  letter-spacing: 0.02em;
-}
-
 /* ---------- Velvet: garnet cloth, gold leaf, double rule ---------- */
 
 html[data-theme='velvet'] {
@@ -119,17 +111,6 @@ html[data-theme='velvet'] .stats li:first-child {
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-}
-
-html[data-theme='velvet'] .tray__print {
-  background: linear-gradient(100deg, oklch(0.9 0.09 90), oklch(0.74 0.1 78) 50%, oklch(0.92 0.08 92));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-  font-style: italic;
-  letter-spacing: 0.04em;
 }
 
 /* ---------- Glass: blueprint paper, registration marks ---------- */
@@ -161,14 +142,6 @@ html[data-theme='glass'] .tray__status {
   font-family: var(--die-font);
 }
 
-html[data-theme='glass'] .tray__print {
-  padding-top: 8px;
-  border-top: 1px dashed oklch(0.9 0.09 215 / 0.45);
-  color: oklch(0.86 0.08 215 / 0.85);
-  font-family: var(--die-font);
-  font-size: 0.78rem;
-}
-
 /* ---------- Pads: hardware plate, screws, LCD ---------- */
 
 html[data-theme='pads'] {
@@ -185,38 +158,6 @@ html[data-theme='pads'] .tray::after {
     var(--screw) 100% 0 / 12px 12px no-repeat,
     var(--screw) 0 100% / 12px 12px no-repeat,
     var(--screw) 100% 100% / 12px 12px no-repeat;
-}
-
-html[data-theme='pads'] .tray__print {
-  justify-self: start;
-  padding: 5px 10px;
-  border: 2px solid oklch(0.08 0.005 70);
-  border-radius: 4px;
-  background: oklch(0.2 0.04 150);
-  box-shadow: inset 0 0 10px oklch(0 0 0 / 0.6);
-  color: oklch(0.86 0.17 145);
-  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
-  text-shadow: 0 0 6px oklch(0.8 0.18 145 / 0.7);
-}
-
-/* ---------- Printed line at the foot of the tray ---------- */
-
-.tray__print {
-  margin: 0;
-  text-align: center;
-}
-
-.tray__print > span {
-  display: none;
-}
-
-html[data-theme='felt'] .tray__print > [data-for='felt'],
-html[data-theme='velvet'] .tray__print > [data-for='velvet'],
-html[data-theme='glass'] .tray__print > [data-for='glass'],
-html[data-theme='pads'] .tray__print > [data-for='pads'] {
-  display: inline;
 }
 
 /* ---------- Dice ---------- */

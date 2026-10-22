@@ -6,9 +6,8 @@ import { Controls } from './components/Controls'
 import { DiceTray } from './components/DiceTray'
 import { Header } from './components/Header'
 import { ModeTabs } from './components/ModeTabs'
-import { PlayingTips } from './components/PlayingTips'
+import { Presets } from './components/Presets'
 import { Transport } from './components/Transport'
-import { TrayPrint } from './components/TrayPrint'
 import { formatAdvancedFace, formatDieChord, formatDuration, formatSource, totalBeats } from './format'
 import { encodeShare, formatChart } from './share'
 import type { StageDie } from './types'
@@ -192,10 +191,14 @@ export default function RngChordsApp() {
                   keptSlots={state.keptChordSlots}
                   onPress={player.preview}
                 />
-                <p className="tray__status" role="status" aria-live="polite">
-                  {status}
+                {status ? (
+                  <p className="tray__status" role="status">
+                    {status}
+                  </p>
+                ) : null}
+                <p className="sr-only" role="status">
+                  {chords.map((chord) => chord.label).join(', ')}
                 </p>
-                <TrayPrint keyCenter={state.progression.keyCenter} tempo={state.tempo} count={chords.length} />
               </section>
 
               <Transport
@@ -210,8 +213,8 @@ export default function RngChordsApp() {
                 onExport={player.exportMidi}
                 actions={actions}
               />
-              <p className="shortcuts">Space plays or stops. Arrow keys preview chords, and Enter replays the one you stopped on.</p>
-              <PlayingTips progression={display} />
+              <Presets presetId={state.activePresetId} actions={actions} />
+              <p className="shortcuts">Space plays or stops. Arrow keys step through the chords.</p>
             </div>
 
             <ChordRack
@@ -231,7 +234,6 @@ export default function RngChordsApp() {
             <Controls
               mode={state.mode}
               complexity={state.complexity}
-              presetId={state.activePresetId}
               keyLock={state.keyLock}
               guidedFaces={state.guidedFaces}
               advancedConfig={state.advancedConfig}

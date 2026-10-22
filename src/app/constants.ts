@@ -2,19 +2,10 @@ import { PLAYBACK_INSTRUMENT_COPY, type PlaybackInstrument } from '../lib/audio/
 import type { ChordComplexity } from '../lib/music/types'
 import type { Mode, SectionId } from './types'
 
-export const MODE_COPY: Record<Mode, { title: string; detail: string }> = {
-  guided: {
-    title: 'Easy',
-    detail: 'One die per chord. Roll, listen, keep what works.',
-  },
-  advanced: {
-    title: 'Advanced',
-    detail: 'Five dice set the roots, qualities, extensions, inversions, and rhythm.',
-  },
-  manual: {
-    title: 'Manual',
-    detail: 'Type chord names or build one from parts when you already hear it.',
-  },
+export const MODE_COPY: Record<Mode, { title: string }> = {
+  guided: { title: 'Easy' },
+  advanced: { title: 'Advanced' },
+  manual: { title: 'Manual' },
 }
 
 export const COMPLEXITY_COPY: Record<ChordComplexity, { label: string; detail: string }> = {
@@ -42,5 +33,5 @@ export const MIN_TEMPO = 58
 export const MAX_TEMPO = 164
 export const MAX_GUIDED_DICE = 8
 export const DEFAULT_MANUAL_INPUT = 'Cmaj9, Am11, D7b9, G13'
-export const DEFAULT_STATUS = 'Roll the dice to get a progression.'
+export const DEFAULT_STATUS = ''
 export const SESSION_KEY = 'rng-chords-creative-session'

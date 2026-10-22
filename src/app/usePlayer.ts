@@ -42,7 +42,7 @@ export function usePlayer({ source, display, tempo, instrument, loop, notify }: 
     }
 
     setPlaying(true)
-    notify(loop ? 'Looping.' : 'Playing.')
+    notify('')
 
     try {
       await playProgression(display, tempo, {
@@ -53,7 +53,6 @@ export function usePlayer({ source, display, tempo, instrument, loop, notify }: 
           if (!loop) {
             setPlaying(false)
             setActiveIndex(null)
-            notify('Finished.')
           }
         },
       })
@@ -66,7 +65,7 @@ export function usePlayer({ source, display, tempo, instrument, loop, notify }: 
 
   const stop = useCallback(() => {
     reset()
-    notify('Stopped.')
+    notify('')
   }, [notify, reset])
 
   const preview = useCallback(

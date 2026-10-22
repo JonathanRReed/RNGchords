@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createChordDescriptor } from '../src/lib/music/chords'
 import { createAdvancedRoll, createAdvancedRollFromValues, createGuidedRoll } from '../src/lib/music/generator'
 import { applyRhythmFeel, getTheoryTags } from '../src/lib/music/ideas'
-import { describeProgression } from '../src/lib/music/notes'
 import { parseChordSymbol, parseProgressionInput } from '../src/lib/music/parser'
 
 describe('music parsing and normalization', () => {
@@ -155,30 +154,5 @@ describe('idea helpers', () => {
     expect(tags).toContain('V')
     expect(tags).toContain('Color')
     expect(tags).toContain('Dominant')
-  })
-})
-
-describe('progression notes', () => {
-  const build = (input: string, keyCenter: 'C' | 'G' = 'C') => ({
-    chords: parseProgressionInput(input).chords,
-    explanation: [],
-    rollSummary: [],
-    source: 'manual-text' as const,
-    keyCenter,
-  })
-
-  it('names the notes two neighboring chords share', () => {
-    const notes = describeProgression(build('Cmaj7, Am7, Fmaj7, G7'))
-
-    expect(notes[0]).toContain('Cmaj7 and Am7 both contain')
-  })
-
-  it('says when a progression ends on the key note', () => {
-    expect(describeProgression(build('Am, F, G, C')).join(' ')).toContain('sounds finished')
-    expect(describeProgression(build('C, Am, F, G')).join(' ')).toContain('sounds unfinished')
-  })
-
-  it('returns nothing for an empty progression', () => {
-    expect(describeProgression(build(''))).toEqual([])
   })
 })
