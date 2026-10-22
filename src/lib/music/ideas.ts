@@ -1,4 +1,4 @@
-import { createChordDescriptor, fromPitchClass, toPitchClass } from './chords'
+import { createChordDescriptor, fromPitchClass, keyUsesFlats, toPitchClass } from './chords'
 import type { ChordComplexity, ChordDescriptor, ChordQuality, ExtensionToken, ProgressionResult, RootNote } from './types'
 
 export type RhythmFeel = 'straight' | 'lazy' | 'pushing' | 'floaty' | 'stabs'
@@ -176,7 +176,7 @@ export function rerollChordFromKey({
   index: number
 }): ChordDescriptor {
   const keyPitch = toPitchClass(keyCenter)
-  const preferFlat = keyCenter.includes('b')
+  const preferFlat = keyUsesFlats(keyCenter)
   const currentInterval = (toPitchClass(chord.root) - keyPitch + 12) % 12
   const stepPool = complexity === 'wild' && Math.random() > 0.5
     ? [...DIATONIC_STEP_VALUES, ...CHROMATIC_COLOR_STEP_VALUES]
@@ -192,6 +192,7 @@ export function rerollChordFromKey({
   const inversion = inversionLimit <= 1 ? 0 : Math.floor(Math.random() * inversionLimit)
 
   return createChordDescriptor({
+    flats: preferFlat,
     id: `reroll-${index}-${Date.now()}-${Math.round(Math.random() * 10000)}`,
     root,
     quality,

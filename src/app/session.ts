@@ -2,6 +2,7 @@ import { DEFAULT_ADVANCED_FACES, DEFAULT_GUIDED_FACES } from '../lib/music/const
 import { createAdvancedRollFromValues, createGuidedRollFromValues } from '../lib/music/generator'
 import { RHYTHM_FEEL_COPY, type RhythmFeel } from '../lib/music/ideas'
 import { PLAYGROUND_PRESETS } from '../lib/music/playground'
+import { KEY_CHOICES } from '../lib/music/transpose'
 import type { AdvancedRollResult, BuilderState, GuidedRollResult } from '../lib/music/types'
 import { COMPLEXITY_OPTIONS, DEFAULT_MANUAL_INPUT, FOCUS_OPTIONS, INSTRUMENT_OPTIONS, MODE_OPTIONS, SECTION_IDS, SESSION_KEY } from './constants'
 import type { SectionId, SectionSnapshot, WorkState } from './types'
@@ -41,6 +42,7 @@ export function createInitialState(): WorkState {
     guidedFaces: INITIAL_FACES,
     instrumentFocus: FIRST_PRESET?.instrumentFocus ?? 'both',
     keptChordSlots: [],
+    keyLock: null,
     loopEnabled: false,
     manualInput: DEFAULT_MANUAL_INPUT,
     mode: 'guided',
@@ -93,6 +95,7 @@ export function readSession(raw: string | null): WorkState | null {
     guidedFaces: Array.isArray(saved.guidedFaces) && saved.guidedFaces.length > 0 ? saved.guidedFaces : base.guidedFaces,
     instrumentFocus: pick(saved.instrumentFocus, FOCUS_OPTIONS, base.instrumentFocus),
     keptChordSlots: Array.isArray(saved.keptChordSlots) ? saved.keptChordSlots : [],
+    keyLock: KEY_CHOICES.find((key) => key === saved.keyLock) ?? null,
     loopEnabled: Boolean(saved.loopEnabled),
     manualInput: typeof saved.manualInput === 'string' ? saved.manualInput : base.manualInput,
     mode: pick(saved.mode, MODE_OPTIONS, 'guided'),

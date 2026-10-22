@@ -7,6 +7,7 @@ import type {
   BuilderState,
   ChordComplexity,
   ProgressionResult,
+  RootNote,
 } from '../lib/music/types'
 
 export type Mode = 'guided' | 'advanced' | 'manual'
@@ -31,6 +32,7 @@ export interface WorkState extends SectionSnapshot {
   activeSection: SectionId
   builder: BuilderState
   keptChordSlots: number[]
+  keyLock: RootNote | null
   loopEnabled: boolean
   manualInput: string
   sections: Record<SectionId, SectionSnapshot | null>
@@ -43,4 +45,7 @@ export interface StageDie {
   value: string | number
   footer: string
   detail?: string
+  faces: number
+  /** Index of the chord this die stands for, when it stands for one. */
+  chordIndex?: number
 }

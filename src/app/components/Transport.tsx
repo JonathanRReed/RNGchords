@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { PLAYBACK_INSTRUMENT_COPY, preloadPlayback, type PlaybackInstrument } from '../../lib/audio/playback'
 import { RHYTHM_FEEL_COPY, type RhythmFeel } from '../../lib/music/ideas'
 import { INSTRUMENT_OPTIONS, MAX_TEMPO, MIN_TEMPO } from '../constants'
@@ -17,7 +18,26 @@ interface TransportProps {
   actions: Pick<WorkstationActions, 'setLoop' | 'setTempo' | 'setInstrument' | 'setFeel'>
 }
 
+const TAP_RESET_MS = 2000
+const TAPS_USED = 5
+
 export function Transport({ playing, loop, tempo, instrument, feel, exporting, onPlay, onStop, onExport, actions }: TransportProps) {
+  const taps = useRef<number[]>([])
+
+  const tap = () => {
+    const now = performance.now()
+    const last = taps.current.at(-1)
+    taps.current = (last !== undefined && now - last > TAP_RESET_MS ? [] : taps.current).concat(now).slice(-TAPS_USED)
+
+    if (taps.current.length < 2) {
+      return
+    }
+
+    const span = taps.current.at(-1)! - taps.current[0]!
+    const bpm = Math.round(60000 / (span / (taps.current.length - 1)))
+    actions.setTempo(Math.min(MAX_TEMPO, Math.max(MIN_TEMPO, bpm)))
+  }
+
   return (
     <section className="transport panel" aria-label="Playback">
       <div className="transport__row">
@@ -43,6 +63,9 @@ export function Transport({ playing, loop, tempo, instrument, feel, exporting, o
             <output>{tempo} BPM</output>
           </div>
         </label>
+        <button type="button" className="btn btn--sm transport__tap" onClick={tap} title="Tap along to the beat you hear">
+          Tap tempo
+        </button>
       </div>
       <div className="transport__row">
         <label className="field field--inline">

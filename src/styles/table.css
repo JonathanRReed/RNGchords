@@ -1,0 +1,597 @@
+/*
+ * The table: the tray the dice land in, the dice themselves, and everything
+ * that makes each theme feel like a different object. Colors and material
+ * strengths come from the theme tokens in tokens.css.
+ */
+
+/* ---------- Tray ---------- */
+
+.tray {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  gap: 18px;
+  padding: calc(var(--rail-w) + clamp(14px, 2.5vw, 24px));
+  border-radius: calc(var(--r-panel) + 4px);
+  background: var(--tray-texture), var(--tray-bg);
+  box-shadow: inset 0 2px 18px oklch(0 0 0 / 0.35), var(--shadow);
+  color: var(--tray-ink);
+  overflow: hidden;
+}
+
+.tray > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* The rail: a ring cut out of a gradient, so each theme can be brass, gold, a hairline, or steel. */
+.tray::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  padding: var(--rail-w);
+  border-radius: inherit;
+  background: var(--tray-rail);
+  pointer-events: none;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+
+.tray::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.stats__key {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.step-btn {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid oklch(1 0 0 / 0.28);
+  border-radius: 50%;
+  background: oklch(1 0 0 / 0.1);
+  color: var(--tray-ink);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.step-btn:hover:not(:disabled) {
+  background: oklch(1 0 0 / 0.22);
+}
+
+.step-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ---------- Felt: green baize, brass rail, stitching ---------- */
+
+html[data-theme='felt'] .tray::after {
+  inset: calc(var(--rail-w) + 6px);
+  border: 1.5px dashed oklch(0.92 0.06 90 / 0.36);
+  border-radius: calc(var(--r-panel) - 2px);
+}
+
+html[data-theme='felt'] .tray__print {
+  color: oklch(0.9 0.07 90 / 0.7);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-style: italic;
+  letter-spacing: 0.02em;
+}
+
+/* ---------- Velvet: garnet cloth, gold leaf, double rule ---------- */
+
+html[data-theme='velvet'] {
+  --tray-texture:
+    repeating-linear-gradient(45deg, oklch(1 0 0 / 0.028) 0 2px, transparent 2px 5px),
+    repeating-linear-gradient(-45deg, oklch(0 0 0 / 0.1) 0 2px, transparent 2px 5px),
+    radial-gradient(70% 90% at 50% 0%, oklch(0.62 0.13 35 / 0.38), transparent 70%);
+}
+
+html[data-theme='velvet'] .tray::after {
+  inset: calc(var(--rail-w) + 7px);
+  border: 1px solid oklch(0.8 0.1 85 / 0.55);
+  border-radius: calc(var(--r-panel) - 4px);
+  outline: 1px solid oklch(0.8 0.1 85 / 0.32);
+  outline-offset: -5px;
+  background:
+    radial-gradient(circle at 0 0, oklch(0.85 0.1 88) 0 3px, transparent 3.5px) 4px 4px / 14px 14px no-repeat,
+    radial-gradient(circle at 100% 0, oklch(0.85 0.1 88) 0 3px, transparent 3.5px) calc(100% - 4px) 4px / 14px 14px no-repeat,
+    radial-gradient(circle at 0 100%, oklch(0.85 0.1 88) 0 3px, transparent 3.5px) 4px calc(100% - 4px) / 14px 14px no-repeat,
+    radial-gradient(circle at 100% 100%, oklch(0.85 0.1 88) 0 3px, transparent 3.5px) calc(100% - 4px) calc(100% - 4px) / 14px 14px no-repeat;
+}
+
+html[data-theme='velvet'] .stats li:first-child {
+  background: linear-gradient(100deg, oklch(0.94 0.09 90), oklch(0.78 0.11 80) 45%, oklch(0.95 0.08 92));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+html[data-theme='velvet'] .tray__print {
+  background: linear-gradient(100deg, oklch(0.9 0.09 90), oklch(0.74 0.1 78) 50%, oklch(0.92 0.08 92));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-style: italic;
+  letter-spacing: 0.04em;
+}
+
+/* ---------- Glass: blueprint paper, registration marks ---------- */
+
+html[data-theme='glass'] {
+  --tray-texture:
+    repeating-linear-gradient(0deg, oklch(0.9 0.08 215 / 0.12) 0 1px, transparent 1px 80px),
+    repeating-linear-gradient(90deg, oklch(0.9 0.08 215 / 0.12) 0 1px, transparent 1px 80px),
+    repeating-linear-gradient(0deg, oklch(0.9 0.08 215 / 0.05) 0 1px, transparent 1px 16px),
+    repeating-linear-gradient(90deg, oklch(0.9 0.08 215 / 0.05) 0 1px, transparent 1px 16px);
+}
+
+html[data-theme='glass'] .tray::after {
+  --mark: oklch(0.9 0.09 215 / 0.8);
+  inset: 10px;
+  background:
+    linear-gradient(var(--mark), var(--mark)) 0 0 / 16px 1.5px no-repeat,
+    linear-gradient(var(--mark), var(--mark)) 0 0 / 1.5px 16px no-repeat,
+    linear-gradient(var(--mark), var(--mark)) 100% 0 / 16px 1.5px no-repeat,
+    linear-gradient(var(--mark), var(--mark)) 100% 0 / 1.5px 16px no-repeat,
+    linear-gradient(var(--mark), var(--mark)) 0 100% / 16px 1.5px no-repeat,
+    linear-gradient(var(--mark), var(--mark)) 0 100% / 1.5px 16px no-repeat,
+    linear-gradient(var(--mark), var(--mark)) 100% 100% / 16px 1.5px no-repeat,
+    linear-gradient(var(--mark), var(--mark)) 100% 100% / 1.5px 16px no-repeat;
+}
+
+html[data-theme='glass'] .stats,
+html[data-theme='glass'] .tray__status {
+  font-family: var(--die-font);
+}
+
+html[data-theme='glass'] .tray__print {
+  padding-top: 8px;
+  border-top: 1px dashed oklch(0.9 0.09 215 / 0.45);
+  color: oklch(0.86 0.08 215 / 0.85);
+  font-family: var(--die-font);
+  font-size: 0.78rem;
+}
+
+/* ---------- Pads: hardware plate, screws, LCD ---------- */
+
+html[data-theme='pads'] {
+  --tray-texture:
+    radial-gradient(oklch(1 0 0 / 0.07) 1px, transparent 1.6px) 0 0 / 14px 14px,
+    repeating-linear-gradient(90deg, oklch(1 0 0 / 0.02) 0 1px, transparent 1px 3px);
+}
+
+html[data-theme='pads'] .tray::after {
+  --screw: radial-gradient(circle, oklch(0.62 0.005 70) 0 1.5px, oklch(0.3 0.005 70) 2px 4px, oklch(0.1 0 0 / 0.6) 4.5px, transparent 5.5px);
+  inset: 8px;
+  background:
+    var(--screw) 0 0 / 12px 12px no-repeat,
+    var(--screw) 100% 0 / 12px 12px no-repeat,
+    var(--screw) 0 100% / 12px 12px no-repeat,
+    var(--screw) 100% 100% / 12px 12px no-repeat;
+}
+
+html[data-theme='pads'] .tray__print {
+  justify-self: start;
+  padding: 5px 10px;
+  border: 2px solid oklch(0.08 0.005 70);
+  border-radius: 4px;
+  background: oklch(0.2 0.04 150);
+  box-shadow: inset 0 0 10px oklch(0 0 0 / 0.6);
+  color: oklch(0.86 0.17 145);
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 6px oklch(0.8 0.18 145 / 0.7);
+}
+
+/* ---------- Printed line at the foot of the tray ---------- */
+
+.tray__print {
+  margin: 0;
+  text-align: center;
+}
+
+.tray__print > span {
+  display: none;
+}
+
+html[data-theme='felt'] .tray__print > [data-for='felt'],
+html[data-theme='velvet'] .tray__print > [data-for='velvet'],
+html[data-theme='glass'] .tray__print > [data-for='glass'],
+html[data-theme='pads'] .tray__print > [data-for='pads'] {
+  display: inline;
+}
+
+/* ---------- Dice ---------- */
+
+.dice {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(12px, 2.4vw, 24px) clamp(8px, 1.6vw, 18px);
+  padding-block: 8px 2px;
+}
+
+.dice-empty {
+  padding: 36px 12px;
+  color: var(--tray-ink-2);
+  text-align: center;
+}
+
+.die {
+  --hull-stroke: var(--die-b);
+  display: grid;
+  flex: 1 1 108px;
+  gap: 8px;
+  justify-items: center;
+  min-width: 96px;
+  max-width: 150px;
+}
+
+@media (max-width: 560px) {
+  .dice {
+    gap: 14px 6px;
+  }
+
+  .die {
+    flex-basis: 28%;
+    min-width: 0;
+    max-width: none;
+  }
+}
+
+html[data-theme='glass'] .die {
+  --hull-stroke: transparent;
+}
+
+html[data-theme='velvet'] .die {
+  --pip: var(--die-ink);
+}
+
+html[data-theme='pads'] .die {
+  --hull-stroke: var(--rim-color);
+}
+
+.die[data-accent='1'] {
+  --die-a: var(--die-a1);
+  --die-b: var(--die-b1);
+  --die-ink: var(--die-ink1);
+}
+
+.die[data-accent='2'] {
+  --die-a: var(--die-a2);
+  --die-b: var(--die-b2);
+  --die-ink: var(--die-ink2);
+}
+
+.die[data-accent='3'] {
+  --die-a: var(--die-a3);
+  --die-b: var(--die-b3);
+  --die-ink: var(--die-ink3);
+}
+
+.die[data-accent='4'] {
+  --die-a: var(--die-a4);
+  --die-b: var(--die-b4);
+  --die-ink: var(--die-ink4);
+}
+
+.die__hit {
+  position: relative;
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  transform: rotate(var(--tilt, 0deg));
+  transition: transform 0.2s cubic-bezier(0.3, 1.5, 0.5, 1);
+  perspective: 900px;
+}
+
+button.die__hit {
+  cursor: pointer;
+}
+
+button.die__hit:hover {
+  transform: rotate(calc(var(--tilt, 0deg) * -0.4)) translateY(-5px);
+}
+
+button.die__hit:active {
+  transform: rotate(var(--tilt, 0deg)) translateY(1px) scale(0.97);
+  transition-duration: 0.06s;
+}
+
+button.die__hit:focus-visible {
+  outline: 2px solid var(--accent-solid);
+  outline-offset: 5px;
+  border-radius: 14px;
+}
+
+.die__shadow {
+  position: absolute;
+  right: 14%;
+  bottom: -2%;
+  left: 14%;
+  height: 12%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, oklch(0 0 0 / 0.6), transparent);
+  opacity: 0.32;
+}
+
+html[data-theme='pads'] .die__shadow,
+html[data-theme='glass'] .die__shadow {
+  display: none;
+}
+
+.die__body {
+  position: relative;
+  display: block;
+  aspect-ratio: 1;
+  container-type: inline-size;
+  transform-style: preserve-3d;
+}
+
+.die__art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  filter: var(--die-filter);
+}
+
+.die__hull {
+  stroke: var(--hull-stroke);
+  stroke-width: 4;
+  stroke-linejoin: round;
+}
+
+.die__facet {
+  stroke: var(--facet-line);
+  stroke-width: var(--facet-line-w);
+  stroke-linejoin: round;
+}
+
+.die__facet[data-shade='light'] {
+  fill: #fff;
+  fill-opacity: calc(var(--tone) * var(--facet-gain));
+}
+
+.die__facet[data-shade='dark'] {
+  fill: #000;
+  fill-opacity: calc(var(--tone) * var(--facet-gain));
+}
+
+.die__rim {
+  fill: none;
+  stroke: var(--rim-color);
+  stroke-width: var(--rim-w);
+  stroke-linejoin: round;
+}
+
+.die__spec {
+  fill: #fff;
+  opacity: var(--spec);
+}
+
+.die__pips circle {
+  fill: var(--pip);
+  opacity: 0.88;
+}
+
+.die__value {
+  position: absolute;
+  color: var(--die-ink);
+  font-family: var(--die-font);
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  text-shadow: var(--die-text-shadow);
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+html[data-theme='pads'] .die__value {
+  font-weight: 800;
+}
+
+.die__cap {
+  display: grid;
+  justify-items: center;
+  gap: 1px;
+  color: var(--tray-ink-2);
+  font-size: 0.76rem;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.die__label {
+  color: var(--tray-ink);
+  font-weight: 700;
+}
+
+.die__sub {
+  word-spacing: 0.3em;
+}
+
+html[data-theme='glass'] .die__cap {
+  font-family: var(--die-font);
+  font-size: 0.7rem;
+}
+
+html[data-theme='pads'] .die__cap {
+  font-weight: 700;
+}
+
+/* A kept chord gets an accent rim and a small lamp by its name. */
+.die[data-kept] .die__rim {
+  stroke: var(--accent-solid);
+  stroke-width: calc(var(--rim-w) + 1.4);
+}
+
+.die[data-kept] .die__label::before {
+  content: '';
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 6px;
+  border-radius: 50%;
+  background: var(--accent-solid);
+  box-shadow: 0 0 8px var(--accent-solid);
+}
+
+/* The die for the chord that is sounding hops once when it starts. */
+.die[data-playing] .die__hit {
+  animation: die-hop 0.46s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+.die[data-playing] .die__cap {
+  color: var(--accent-solid);
+}
+
+@keyframes die-hop {
+  0% {
+    transform: rotate(var(--tilt, 0deg)) translateY(0) scale(1);
+  }
+
+  35% {
+    transform: rotate(calc(var(--tilt, 0deg) * -1)) translateY(-12px) scale(1.06);
+  }
+
+  100% {
+    transform: rotate(var(--tilt, 0deg)) translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .die__hit {
+    transition: none;
+  }
+
+  .die[data-playing] .die__hit {
+    animation: none;
+  }
+
+  .die[data-playing] .die__rim {
+    stroke: var(--accent-solid);
+  }
+}
+
+/* ---------- Chord cards ---------- */
+
+.chord-card__head {
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+}
+
+.chord-card__numeral {
+  padding: 0 9px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.piano {
+  display: block;
+  width: 100%;
+  max-height: 58px;
+}
+
+.piano__white {
+  fill: oklch(0.97 0.006 90);
+  stroke: oklch(0.62 0.01 80);
+  stroke-width: 0.3;
+}
+
+.piano__black {
+  fill: oklch(0.22 0.01 60);
+}
+
+.piano__white[data-lit] {
+  fill: var(--accent-solid);
+}
+
+.piano__black[data-lit] {
+  fill: color-mix(in oklch, var(--accent-solid) 70%, black);
+  stroke: var(--accent-solid);
+  stroke-width: 0.5;
+}
+
+.piano [data-root] {
+  stroke: var(--ink);
+  stroke-width: 1;
+}
+
+.transport__tap {
+  align-self: flex-end;
+}
+
+/* ---------- Texture and a different object per theme ---------- */
+
+body {
+  background-image: var(--grain);
+}
+
+.panel,
+.chord-card {
+  background-image: var(--grain);
+}
+
+html[data-theme='velvet'] .chord-card {
+  outline: 1px solid color-mix(in oklch, var(--accent) 45%, transparent);
+  outline-offset: -6px;
+}
+
+html[data-theme='glass'] .chord-card {
+  border-radius: 4px;
+}
+
+html[data-theme='glass'] .notes li,
+html[data-theme='glass'] .tags li,
+html[data-theme='glass'] .chord-card__meta {
+  font-family: var(--die-font);
+}
+
+html[data-theme='pads'] .chord-card {
+  border-width: 2px;
+  box-shadow: 0 4px 0 var(--line);
+}
+
+html[data-theme='pads'] .chord-card[data-playing] {
+  box-shadow: 0 4px 0 var(--accent);
+}
+
+html[data-theme='pads'] .btn,
+html[data-theme='pads'] .chip {
+  border-width: 2px;
+  box-shadow: 0 3px 0 var(--line);
+}
+
+html[data-theme='pads'] .btn:active:not(:disabled) {
+  box-shadow: 0 1px 0 var(--line);
+  transform: translateY(2px);
+}

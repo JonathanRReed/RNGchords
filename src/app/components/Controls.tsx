@@ -1,6 +1,7 @@
 import { memo } from 'react'
+import { KEY_CHOICES } from '../../lib/music/transpose'
 import { PLAYGROUND_PRESETS } from '../../lib/music/playground'
-import type { AdvancedDiceConfig, BuilderState, ChordComplexity } from '../../lib/music/types'
+import type { AdvancedDiceConfig, BuilderState, ChordComplexity, RootNote } from '../../lib/music/types'
 import { COMPLEXITY_COPY, COMPLEXITY_OPTIONS, MODE_COPY } from '../constants'
 import type { Mode } from '../types'
 import type { WorkstationActions } from '../useWorkstation'
@@ -14,6 +15,7 @@ interface ControlsProps {
   mode: Mode
   complexity: ChordComplexity
   presetId: string
+  keyLock: RootNote | null
   guidedFaces: number[]
   advancedConfig: AdvancedDiceConfig
   builder: BuilderState
@@ -28,6 +30,7 @@ export const Controls = memo(function Controls({
   mode,
   complexity,
   presetId,
+  keyLock,
   guidedFaces,
   advancedConfig,
   builder,
@@ -51,6 +54,21 @@ export const Controls = memo(function Controls({
         <h2 className="controls__title">Chord style</h2>
         <Segmented label="Chord style" options={COMPLEXITY_CHOICES} value={complexity} onChange={actions.setComplexity} />
         <p className="hint">{COMPLEXITY_COPY[complexity].detail}</p>
+      </div>
+
+      <div className="controls__section">
+        <label className="field">
+          <span className="controls__title">Key</span>
+          <select value={keyLock ?? ''} onChange={(event) => actions.setKeyLock((event.target.value || null) as RootNote | null)}>
+            <option value="">Any key</option>
+            {KEY_CHOICES.map((key) => (
+              <option key={key} value={key}>
+                {key}
+              </option>
+            ))}
+          </select>
+        </label>
+        <p className="hint">{keyLock ? `Every roll lands in ${keyLock}.` : 'Pick a key to keep every roll in it.'}</p>
       </div>
 
       <div className="controls__section">

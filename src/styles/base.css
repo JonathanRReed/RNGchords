@@ -201,3 +201,19 @@ button {
 .site-footer a:hover {
   color: var(--ink);
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  .brand:hover svg {
+    animation: brand-tumble 0.55s cubic-bezier(0.3, 1.4, 0.5, 1);
+  }
+}
+
+@keyframes brand-tumble {
+  40% {
+    transform: rotate(-24deg) translateY(-3px);
+  }
+
+  75% {
+    transform: rotate(10deg);
+  }
+}

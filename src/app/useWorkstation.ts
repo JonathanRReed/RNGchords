@@ -5,6 +5,7 @@ import { DEFAULT_ADVANCED_FACES } from '../lib/music/constants'
 import { createAdvancedRoll, createGuidedRoll } from '../lib/music/generator'
 import { applyRhythmFeel, rerollChordFromKey, type RhythmFeel } from '../lib/music/ideas'
 import { parseProgressionInput } from '../lib/music/parser'
+import { transposeProgression, transposeToKey } from '../lib/music/transpose'
 import { PLAYGROUND_PRESETS, type InstrumentFocus, type PlaygroundPreset } from '../lib/music/playground'
 import type {
   AdvancedParameter,
@@ -12,6 +13,7 @@ import type {
   ChordComplexity,
   ChordDescriptor,
   ProgressionResult,
+  RootNote,
 } from '../lib/music/types'
 import {
   COMPLEXITY_COPY,
@@ -23,6 +25,7 @@ import {
   SURPRISE_TEMPOS,
 } from './constants'
 import { createInitialState, loadSession, saveSession } from './session'
+import { decodeShare } from './share'
 import type { Mode, SectionId, WorkState } from './types'
 
 const SAVE_DELAY_MS = 400
@@ -52,6 +55,35 @@ export function useWorkstation() {
   stateRef.current = state
 
   useEffect(() => {
+    const openSharedLink = () => {
+      const shared = decodeShare(window.location.hash)
+
+      if (!shared) {
+        return
+      }
+
+      const chords = shared.chords
+
+      setState((current) => ({
+        ...current,
+        mode: 'manual',
+        progression: {
+          chords,
+          explanation: ['Opened from a shared link.'],
+          rollSummary: chords.map((chord, index) => `Chord ${index + 1}: ${chord.label}`),
+          source: 'manual-text',
+          keyCenter: chords[0]?.root ?? 'C',
+        },
+        keptChordSlots: [],
+        tempo: shared.tempo ?? current.tempo,
+        playbackInstrument: shared.instrument ?? current.playbackInstrument,
+        rhythmFeel: shared.feel ?? current.rhythmFeel,
+      }))
+      setRollId((id) => id + 1)
+      setStatus('Opened a shared progression.')
+      window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    }
+
     const saved = loadSession()
 
     if (saved) {
@@ -59,7 +91,11 @@ export function useWorkstation() {
       setStatus('Restored your last idea.')
     }
 
+    openSharedLink()
     setRestored(true)
+
+    window.addEventListener('hashchange', openSharedLink)
+    return () => window.removeEventListener('hashchange', openSharedLink)
   }, [])
 
   useEffect(() => {
@@ -85,7 +121,10 @@ export function useWorkstation() {
     const patch = (changes: Partial<WorkState>) => setState((current) => ({ ...current, ...changes }))
 
     const commit = (progression: ProgressionResult, mode: Mode, message: string, extra: Partial<WorkState> = {}) => {
-      setState((current) => ({ ...current, ...extra, progression, mode, keptChordSlots: [] }))
+      const { keyLock } = stateRef.current
+      const placed = keyLock && mode !== 'manual' ? transposeToKey(progression, keyLock) : progression
+
+      setState((current) => ({ ...current, ...extra, progression: placed, mode, keptChordSlots: [] }))
       setManualIssues([])
       setRollId((id) => id + 1)
       setStatus(message)
@@ -156,6 +195,30 @@ export function useWorkstation() {
       setFeel: (rhythmFeel: RhythmFeel) => patch({ rhythmFeel }),
       setLoop: (loopEnabled: boolean) => patch({ loopEnabled }),
       setShowTheory: (showTheory: boolean) => patch({ showTheory }),
+      setKeyLock: (keyLock: RootNote | null) => {
+        const { progression, mode } = stateRef.current
+
+        if (!keyLock || mode === 'manual' || progression.chords.length === 0) {
+          patch({ keyLock })
+          setStatus(keyLock ? `Rolls will land in ${keyLock}.` : 'Rolls can land in any key.')
+          return
+        }
+
+        patch({ keyLock, progression: transposeToKey(progression, keyLock) })
+        setRollId((id) => id + 1)
+        setStatus(`Moved to ${keyLock}.`)
+      },
+      transpose: (semitones: number) => {
+        const { progression } = stateRef.current
+
+        if (progression.chords.length === 0) {
+          return
+        }
+
+        const next = transposeProgression(progression, semitones)
+        patch({ progression: next, keyLock: stateRef.current.keyLock ? next.keyCenter : null })
+        setStatus(`Moved to ${next.keyCenter}.`)
+      },
       setManualInput: (manualInput: string) => patch({ manualInput }),
 
       roll: () => {

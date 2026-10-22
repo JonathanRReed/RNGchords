@@ -5,7 +5,7 @@ import {
   KEY_CENTERS,
   RHYTHM_OPTIONS,
 } from './constants'
-import { createChordDescriptor, fromPitchClass, toPitchClass } from './chords'
+import { createChordDescriptor, fromPitchClass, keyUsesFlats, toPitchClass } from './chords'
 import type {
   AdvancedDiceConfig,
   AdvancedParameter,
@@ -102,7 +102,7 @@ function pickRoot(keyCenter: RootNote, degreeOffset: number, preferFlat = false)
 function guidedProgression(values: number[], config: GuidedDiceConfig, complexity: ChordComplexity): ProgressionResult {
   const sum = values.reduce((total, value) => total + value, 0)
   const keyCenter = chooseKeyCenter(sum)
-  const preferFlat = keyCenter.includes('b')
+  const preferFlat = keyUsesFlats(keyCenter)
   const qualityPool = COMPLEXITY_QUALITY_POOLS[complexity]
   const extensionPool = COMPLEXITY_EXTENSION_POOLS[complexity]
   const chords = values.map((value, index) => {
@@ -121,6 +121,7 @@ function guidedProgression(values: number[], config: GuidedDiceConfig, complexit
     ]
 
     return createChordDescriptor({
+      flats: preferFlat,
       id: `guided-${index}-${value}-${faces}`,
       root,
       quality,
@@ -154,7 +155,7 @@ function advancedProgression(
   complexity: ChordComplexity,
 ): ProgressionResult {
   const keyCenter = chooseKeyCenter(values.roots + values.extensions + (complexity === 'wild' ? values.qualities : 0))
-  const preferFlat = keyCenter.includes('b')
+  const preferFlat = keyUsesFlats(keyCenter)
   const pattern = ROOT_PATTERNS[(values.roots - 1) % ROOT_PATTERNS.length] ?? ROOT_PATTERNS[0]
   const qualityOffset = values.qualities - 1
   const extensionOffset = values.extensions - 1
@@ -173,6 +174,7 @@ function advancedProgression(
     const rhythmBeats = pickRhythm(rhythmOffset, index, complexity)
 
     return createChordDescriptor({
+      flats: preferFlat,
       id: `advanced-${index}-${values.roots}-${values.qualities}`,
       root,
       quality,

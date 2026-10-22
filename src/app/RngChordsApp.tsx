@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useMemo, useRef, type CSSProperties } from 'react'
+import { useCallback, useEffect, useEffectEvent, useMemo, useRef, type CSSProperties } from 'react'
 import { playDiceRoll } from '../lib/audio/sfx'
 import { ADVANCED_PARAMETER_LABELS, ADVANCED_PARAMETERS, RHYTHM_LABELS } from '../lib/music/constants'
 import { ChordRack } from './components/ChordRack'
@@ -8,11 +8,17 @@ import { Header } from './components/Header'
 import { ModeTabs } from './components/ModeTabs'
 import { PlayingTips } from './components/PlayingTips'
 import { Transport } from './components/Transport'
+import { TrayPrint } from './components/TrayPrint'
 import { formatDieChord, formatDuration, formatSource, totalBeats } from './format'
+import { encodeShare, formatChart } from './share'
 import type { StageDie } from './types'
 import { useAppearance } from './useAppearance'
 import { usePlayer } from './usePlayer'
 import { useWorkstation } from './useWorkstation'
+
+function faceForNoteCount(count: number): number {
+  return count <= 3 ? 6 : count === 4 ? 8 : count === 5 ? 12 : 20
+}
 
 const INTERACTIVE_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A'])
 
@@ -38,6 +44,7 @@ export default function RngChordsApp() {
         label: ADVANCED_PARAMETER_LABELS[parameter],
         value: state.advancedRoll.values[parameter],
         footer: `d${state.advancedConfig.faceCounts[parameter]}`,
+        faces: state.advancedConfig.faceCounts[parameter],
       }))
     }
 
@@ -46,9 +53,32 @@ export default function RngChordsApp() {
       label: `Chord ${index + 1}`,
       value: formatDieChord(chord),
       footer: state.mode === 'guided' ? `d${state.guidedFaces[index] ?? 6}` : (RHYTHM_LABELS[chord.rhythmBeats] ?? `${chord.rhythmBeats} beats`),
-      detail: chord.notes.slice(0, 3).join(' '),
+      detail: chord.notes.slice(0, 4).join(' '),
+      faces: state.mode === 'guided' ? (state.guidedFaces[index] ?? 6) : faceForNoteCount(chord.notes.length),
+      chordIndex: index,
     }))
   }, [chords, state.advancedConfig.faceCounts, state.advancedRoll.values, state.guidedFaces, state.mode])
+
+  const copyText = useCallback(
+    async (text: string, done: string) => {
+      try {
+        await navigator.clipboard.writeText(text)
+        actions.notify(done)
+      } catch {
+        actions.notify('Your browser blocked copying. Select the chords and copy them by hand.')
+      }
+    },
+    [actions],
+  )
+
+  const copyChart = useCallback(() => {
+    void copyText(formatChart(display.chords), 'Copied the chord chart.')
+  }, [copyText, display.chords])
+
+  const copyLink = useCallback(() => {
+    const hash = encodeShare(state.progression.chords, state.tempo, state.playbackInstrument, state.rhythmFeel)
+    void copyText(`${window.location.origin}${window.location.pathname}#${hash}`, 'Copied a link to this progression.')
+  }, [copyText, state.progression.chords, state.tempo, state.playbackInstrument, state.rhythmFeel])
 
   const soundedRoll = useRef(0)
 
@@ -116,7 +146,27 @@ export default function RngChordsApp() {
               <section className="tray" aria-label="Dice">
                 <div className="tray__bar">
                   <ul className="stats">
-                    <li>Key of {state.progression.keyCenter}</li>
+                    <li className="stats__key">
+                      <button
+                        type="button"
+                        className="step-btn"
+                        onClick={() => actions.transpose(-1)}
+                        disabled={chords.length === 0}
+                        aria-label="Down a half step"
+                      >
+                        <span aria-hidden="true">−</span>
+                      </button>
+                      <span>Key of {state.progression.keyCenter}</span>
+                      <button
+                        type="button"
+                        className="step-btn"
+                        onClick={() => actions.transpose(1)}
+                        disabled={chords.length === 0}
+                        aria-label="Up a half step"
+                      >
+                        <span aria-hidden="true">+</span>
+                      </button>
+                    </li>
                     <li>{chords.length} {chords.length === 1 ? 'chord' : 'chords'}</li>
                     <li>{duration}</li>
                     <li>{formatSource(state.progression.source)}</li>
@@ -130,10 +180,18 @@ export default function RngChordsApp() {
                     </button>
                   </div>
                 </div>
-                <DiceTray dice={dice} rollId={rollId} flip={flip} />
+                <DiceTray
+                  dice={dice}
+                  rollId={rollId}
+                  flip={flip}
+                  playingIndex={player.highlightedIndex}
+                  keptSlots={state.keptChordSlots}
+                  onPress={player.preview}
+                />
                 <p className="tray__status" role="status" aria-live="polite">
                   {status}
                 </p>
+                <TrayPrint keyCenter={state.progression.keyCenter} tempo={state.tempo} count={chords.length} />
               </section>
 
               <Transport
@@ -160,6 +218,8 @@ export default function RngChordsApp() {
                 sections={state.sections}
                 activeSection={state.activeSection}
                 onPreview={player.preview}
+                onCopy={copyChart}
+                onShare={copyLink}
                 actions={actions}
               />
 
@@ -170,6 +230,7 @@ export default function RngChordsApp() {
               mode={state.mode}
               complexity={state.complexity}
               presetId={state.activePresetId}
+              keyLock={state.keyLock}
               guidedFaces={state.guidedFaces}
               advancedConfig={state.advancedConfig}
               builder={state.builder}

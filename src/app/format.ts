@@ -31,7 +31,7 @@ export function formatSource(source: ProgressionResult['source']): string {
 
 /** A short chord name that fits on a die face. */
 export function formatDieChord(chord: ChordDescriptor): string {
-  if (chord.label.length <= 8) {
+  if (chord.label.length <= 9) {
     return chord.label
   }
 

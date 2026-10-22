@@ -51,6 +51,8 @@ export interface ChordSeed {
   quality: ChordQuality
   extensions: ExtensionToken[]
   bass?: RootNote
+  /** Spell this chord's notes with flats. Left out, the root decides. */
+  flats?: boolean
   inversion?: number
   rhythmBeats?: number
   source: ProgressionSource

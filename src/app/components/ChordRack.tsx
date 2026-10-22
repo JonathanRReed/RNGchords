@@ -15,6 +15,8 @@ interface ChordRackProps {
   sections: Record<SectionId, SectionSnapshot | null>
   activeSection: SectionId
   onPreview: (index: number) => void
+  onCopy: () => void
+  onShare: () => void
   actions: WorkstationActions
 }
 
@@ -28,6 +30,8 @@ export const ChordRack = memo(function ChordRack({
   sections,
   activeSection,
   onPreview,
+  onCopy,
+  onShare,
   actions,
 }: ChordRackProps) {
   return (
@@ -37,6 +41,12 @@ export const ChordRack = memo(function ChordRack({
         <div className="rack__tools">
           <button type="button" className="btn btn--sm" onClick={actions.rerollUnlocked} disabled={chords.length === 0}>
             Reroll unkept
+          </button>
+          <button type="button" className="btn btn--sm" onClick={onCopy} disabled={chords.length === 0}>
+            Copy chart
+          </button>
+          <button type="button" className="btn btn--sm" onClick={onShare} disabled={chords.length === 0}>
+            Copy link
           </button>
           <button type="button" className="btn btn--sm" aria-pressed={showTheory} onClick={() => actions.setShowTheory(!showTheory)}>
             Show theory

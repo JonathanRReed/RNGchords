@@ -93,6 +93,13 @@ function prefersFlats(note: RootNote): boolean {
   return note.includes('b')
 }
 
+const FLAT_KEY_PITCHES = new Set([5, 10, 3, 8, 1, 6])
+
+/** F, Bb, Eb, Ab, Db, and Gb are written with flats. */
+export function keyUsesFlats(key: RootNote): boolean {
+  return FLAT_KEY_PITCHES.has(NOTE_TO_PITCH[key])
+}
+
 export function toPitchClass(note: RootNote): number {
   return NOTE_TO_PITCH[note]
 }
@@ -190,7 +197,7 @@ export function createChordLabel(root: RootNote, quality: ChordQuality, extensio
 }
 
 export function createChordDescriptor(seed: ChordSeed): ChordDescriptor {
-  const preferFlat = prefersFlats(seed.root) || (seed.bass ? prefersFlats(seed.bass) : false)
+  const preferFlat = seed.flats ?? (prefersFlats(seed.root) || (seed.bass ? prefersFlats(seed.bass) : false))
   const rootPitch = toPitchClass(normalizeEnharmonic(seed.root, preferFlat))
   const intervals = buildIntervals(seed.quality, seed.extensions)
   const baseMidi = intervals.map((interval) => 48 + rootPitch + interval)

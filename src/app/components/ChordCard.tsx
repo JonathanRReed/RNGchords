@@ -3,7 +3,9 @@ import { RHYTHM_LABELS } from '../../lib/music/constants'
 import { extensionSummary } from '../../lib/music/chords'
 import { getTheoryTags } from '../../lib/music/ideas'
 import type { ChordDescriptor, RootNote } from '../../lib/music/types'
+import { toPitchClass } from '../../lib/music/chords'
 import { CloseIcon } from './icons'
+import { PianoStrip } from './PianoStrip'
 
 interface ChordCardProps {
   chord: ChordDescriptor
@@ -32,11 +34,16 @@ export const ChordCard = memo(function ChordCard({
   onReroll,
   onRemove,
 }: ChordCardProps) {
+  const [numeral, ...theory] = getTheoryTags(chord, keyCenter)
+
   return (
     <article className="chord-card" data-selected={selected || undefined} data-playing={playing || undefined}>
       <header className="chord-card__head">
         <span className="chord-card__index">{index + 1}</span>
         <h3>{chord.label}</h3>
+        <span className="chord-card__numeral" title="Place in the key">
+          {numeral}
+        </span>
         <button type="button" className="icon-btn" onClick={() => onRemove(index)} aria-label={`Remove ${chord.label}`}>
           <CloseIcon />
         </button>
@@ -48,9 +55,11 @@ export const ChordCard = memo(function ChordCard({
         ))}
       </ul>
 
+      <PianoStrip midi={chord.midi} rootPitchClass={toPitchClass(chord.root)} />
+
       {showTheory ? (
         <ul className="tags" aria-label="Theory">
-          {getTheoryTags(chord, keyCenter).map((tag) => (
+          {theory.map((tag) => (
             <li key={tag}>{tag}</li>
           ))}
         </ul>
