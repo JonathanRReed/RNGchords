@@ -39,7 +39,7 @@ export interface WorkState extends SectionSnapshot {
 export interface StageDie {
   id: string
   label: string
-  value: string | number
+  value: string
   footer: string
   detail?: string
   faces: number

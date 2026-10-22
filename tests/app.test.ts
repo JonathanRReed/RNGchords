@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { DEFAULT_APPEARANCE, parseAppearance, readLegacyTheme, resolveFlip } from '../src/app/appearance'
+import { formatAdvancedFace } from '../src/app/format'
 import { createInitialState, readSession } from '../src/app/session'
 import { encodeShare, decodeShare } from '../src/app/share'
 import { createChordDescriptor, toPitchClass } from '../src/lib/music/chords'
@@ -133,5 +134,25 @@ describe('shared links', () => {
     expect(decodeShare('')).toBeNull()
     expect(decodeShare('#chords=nonsense~alsobad')).toBeNull()
     expect(decodeShare('#chords=C&bpm=900')?.tempo).toBeNull()
+  })
+})
+
+describe('advanced die faces', () => {
+  const chords = [
+    createChordDescriptor({ id: 'a', root: 'G', quality: 'maj', extensions: [], source: 'advanced', rhythmBeats: 0.5 }),
+    createChordDescriptor({ id: 'b', root: 'B', quality: 'min', extensions: ['7', 'b9'], inversion: 1, source: 'advanced', rhythmBeats: 2 }),
+  ]
+
+  it('writes each die in chord notation, led by the first chord', () => {
+    expect(formatAdvancedFace('roots', chords)).toEqual({ face: 'G', run: 'G · B' })
+    expect(formatAdvancedFace('qualities', chords)).toEqual({ face: 'maj', run: 'maj · m' })
+    expect(formatAdvancedFace('extensions', chords)).toEqual({ face: 'triad', run: 'triad · 7♭9' })
+    expect(formatAdvancedFace('rhythm', chords)).toEqual({ face: '½', run: '½ · 2' })
+  })
+
+  it('shows the bass note for inverted chords', () => {
+    const { face, run } = formatAdvancedFace('inversions', chords)
+    expect(face).toBe('root')
+    expect(run).toBe('– · /D')
   })
 })

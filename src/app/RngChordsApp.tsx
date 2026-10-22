@@ -9,7 +9,7 @@ import { ModeTabs } from './components/ModeTabs'
 import { PlayingTips } from './components/PlayingTips'
 import { Transport } from './components/Transport'
 import { TrayPrint } from './components/TrayPrint'
-import { formatDieChord, formatDuration, formatSource, totalBeats } from './format'
+import { formatAdvancedFace, formatDieChord, formatDuration, formatSource, totalBeats } from './format'
 import { encodeShare, formatChart } from './share'
 import type { StageDie } from './types'
 import { useAppearance } from './useAppearance'
@@ -39,13 +39,18 @@ export default function RngChordsApp() {
 
   const dice = useMemo<StageDie[]>(() => {
     if (state.mode === 'advanced') {
-      return ADVANCED_PARAMETERS.map((parameter) => ({
-        id: parameter,
-        label: ADVANCED_PARAMETER_LABELS[parameter],
-        value: state.advancedRoll.values[parameter],
-        footer: `d${state.advancedConfig.faceCounts[parameter]}`,
-        faces: state.advancedConfig.faceCounts[parameter],
-      }))
+      return ADVANCED_PARAMETERS.map((parameter) => {
+        const { face, run } = formatAdvancedFace(parameter, chords)
+
+        return {
+          id: parameter,
+          label: ADVANCED_PARAMETER_LABELS[parameter],
+          value: face,
+          footer: `d${state.advancedConfig.faceCounts[parameter]}, rolled ${state.advancedRoll.values[parameter]}`,
+          detail: run,
+          faces: state.advancedConfig.faceCounts[parameter],
+        }
+      })
     }
 
     return chords.map((chord, index) => ({
@@ -136,13 +141,12 @@ export default function RngChordsApp() {
         <main id="main-content" tabIndex={-1}>
           <section className="intro">
             <h1>Roll the dice, get a chord progression.</h1>
-            <p>Dice pick the key and every chord. Play the result on whatever you own, pin the ones you like, and roll again for the rest.</p>
           </section>
 
           <ModeTabs mode={state.mode} onChange={actions.setMode} />
 
-          <div className="workbench">
-            <div className="stage" style={{ '--beat-ms': `${Math.round(60000 / state.tempo)}ms` } as CSSProperties}>
+          <div className="workbench" style={{ '--beat-ms': `${Math.round(60000 / state.tempo)}ms` } as CSSProperties}>
+            <div className="stage">
               <section className="tray" aria-label="Dice">
                 <div className="tray__bar">
                   <ul className="stats">
@@ -207,23 +211,22 @@ export default function RngChordsApp() {
                 actions={actions}
               />
               <p className="shortcuts">Space plays or stops. Arrow keys preview chords, and Enter replays the one you stopped on.</p>
-
-              <ChordRack
-                chords={chords}
-                keyCenter={state.progression.keyCenter}
-                highlightedIndex={player.highlightedIndex}
-                playingIndex={player.playing ? player.activeIndex : null}
-                keptSlots={state.keptChordSlots}
-                sections={state.sections}
-                activeSection={state.activeSection}
-                onPreview={player.preview}
-                onCopy={copyChart}
-                onShare={copyLink}
-                actions={actions}
-              />
-
               <PlayingTips progression={display} />
             </div>
+
+            <ChordRack
+              chords={chords}
+              keyCenter={state.progression.keyCenter}
+              highlightedIndex={player.highlightedIndex}
+              playingIndex={player.playing ? player.activeIndex : null}
+              keptSlots={state.keptChordSlots}
+              sections={state.sections}
+              activeSection={state.activeSection}
+              onPreview={player.preview}
+              onCopy={copyChart}
+              onShare={copyLink}
+              actions={actions}
+            />
 
             <Controls
               mode={state.mode}

@@ -14,9 +14,9 @@ interface DieCardProps {
   onPress?: (chordIndex: number) => void
 }
 
-function valueSize(text: string, width: number, isNumber: boolean): number {
+function valueSize(text: string, width: number): number {
   const fit = width / (Math.max(2, text.length) * 0.56)
-  return Math.min(isNumber ? 28 : 21, Math.max(9, fit))
+  return Math.min(text.length <= 2 ? 28 : 21, Math.max(9, fit))
 }
 
 export const DieCard = memo(function DieCard({ die, accent, sequence, rollId, flip, playing, kept, onPress }: DieCardProps) {
@@ -54,8 +54,7 @@ export const DieCard = memo(function DieCard({ die, accent, sequence, rollId, fl
   }, [rollId, flip, sequence])
 
   const shape = getDieShape(die.faces)
-  const text = String(die.value)
-  const isNumber = typeof die.value === 'number'
+  const text = die.value
   const seed = hashString(`${die.id}:${rollId}`)
   const tilt = ((seed % 15) - 7) * 0.9
   const sidePips = [(seed % 6) + 1, ((seed >> 4) % 6) + 1]
@@ -109,8 +108,7 @@ export const DieCard = memo(function DieCard({ die, accent, sequence, rollId, fl
         <span
           className="die__value"
           ref={contentRef}
-          data-kind={isNumber ? 'number' : 'text'}
-          style={{ left: `${shape.label.x}%`, top: `${shape.label.y}%`, fontSize: `${valueSize(text, shape.label.width, isNumber)}cqw` }}
+          style={{ left: `${shape.label.x}%`, top: `${shape.label.y}%`, fontSize: `${valueSize(text, shape.label.width)}cqw` }}
         >
           {text}
         </span>
@@ -125,6 +123,7 @@ export const DieCard = memo(function DieCard({ die, accent, sequence, rollId, fl
       data-faces={die.faces}
       data-playing={playing || undefined}
       data-kept={kept || undefined}
+      title={die.footer}
       style={{ '--tilt': `${tilt.toFixed(1)}deg` } as CSSProperties}
       aria-hidden={pressable ? undefined : true}
     >

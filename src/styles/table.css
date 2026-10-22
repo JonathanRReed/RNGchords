@@ -251,7 +251,7 @@ html[data-theme='pads'] .tray__print > [data-for='pads'] {
   }
 
   .die {
-    flex-basis: 28%;
+    flex: 0 1 30%;
     min-width: 0;
     max-width: none;
   }

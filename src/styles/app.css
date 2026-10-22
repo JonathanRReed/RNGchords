@@ -275,13 +275,6 @@ input[type='range'] {
   font-size: clamp(2rem, 4.6vw, 3.2rem);
 }
 
-.intro p {
-  margin-top: 12px;
-  max-width: 56ch;
-  color: var(--ink-2);
-  font-size: 1.05rem;
-}
-
 .mode-tabs {
   display: inline-flex;
   gap: 4px;
@@ -321,15 +314,18 @@ input[type='range'] {
 }
 
 .stage {
-  display: grid;
-  gap: 16px;
-  min-width: 0;
+  display: contents;
 }
 
 .controls {
   display: grid;
   gap: 22px;
   padding: 20px;
+  order: 2;
+}
+
+.tips {
+  order: 1;
 }
 
 .controls__section {
@@ -347,20 +343,25 @@ input[type='range'] {
 @media (min-width: 960px) {
   .workbench {
     grid-template-columns: 340px minmax(0, 1fr);
+    grid-template-areas:
+      'controls stage'
+      'rack rack';
+    gap: 24px 20px;
   }
 
   .controls {
-    grid-column: 1;
-    grid-row: 1;
-    position: sticky;
-    top: 16px;
-    max-height: calc(100dvh - 32px);
-    overflow-y: auto;
+    grid-area: controls;
   }
 
   .stage {
-    grid-column: 2;
-    grid-row: 1;
+    display: grid;
+    grid-area: stage;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  .rack {
+    grid-area: rack;
   }
 }
 
