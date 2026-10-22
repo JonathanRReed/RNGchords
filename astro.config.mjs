@@ -23,7 +23,7 @@ export default defineConfig({
   vite: {
     server: {
       warmup: {
-        clientFiles: ['./src/components/RngChordsApp.tsx', './src/lib/audio/playback.ts'],
+        clientFiles: ['./src/app/RngChordsApp.tsx', './src/lib/audio/playback.ts'],
       },
     },
   },

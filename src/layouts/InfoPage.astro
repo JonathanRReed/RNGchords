@@ -1,0 +1,51 @@
+---
+import SiteFooter from "../components/SiteFooter.astro";
+import "../styles/info.css";
+import Base from "./Base.astro";
+
+interface Props {
+	title: string;
+	description: string;
+	path: string;
+	heading: string;
+	jsonLd: object[];
+	/** Shown under the text, e.g. "Published" or "Last updated". */
+	dateLabel: string;
+	date: string;
+}
+
+const { title, description, path, heading, jsonLd, dateLabel, date } = Astro.props;
+const dateText = new Date(`${date}T12:00:00Z`).toLocaleDateString("en-US", {
+	year: "numeric",
+	month: "long",
+	day: "numeric",
+	timeZone: "UTC",
+});
+---
+
+<Base title={title} description={description} path={path} jsonLd={jsonLd}>
+	<div class="page">
+		<header class="topbar">
+			<a class="brand" href="/">
+				<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+					<rect x="3" y="3" width="18" height="18" rx="4"></rect>
+					<circle cx="8.5" cy="8.5" r="1" fill="currentColor"></circle>
+					<circle cx="15.5" cy="15.5" r="1" fill="currentColor"></circle>
+					<circle cx="12" cy="12" r="1" fill="currentColor"></circle>
+				</svg>
+				<span translate="no">RNG Chords</span>
+			</a>
+			<nav class="topbar__nav" aria-label="Site">
+				<a href="/about/">About</a>
+			</nav>
+		</header>
+		<main id="main-content" class="info">
+			<article class="prose panel">
+				<h1>{heading}</h1>
+				<slot />
+				<p class="prose__date">{dateLabel} <time datetime={date}>{dateText}</time>.</p>
+			</article>
+		</main>
+		<SiteFooter />
+	</div>
+</Base>

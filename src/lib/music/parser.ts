@@ -19,6 +19,10 @@ function normalizeRoot(raw: string): RootNote | null {
 }
 
 function parseQuality(body: string): { quality: ChordQuality; remainder: string; explicitMajor: boolean } {
+  if (body.startsWith('maj7')) {
+    return { quality: 'maj', remainder: body, explicitMajor: true }
+  }
+
   if (body.startsWith('maj')) {
     return { quality: 'maj', remainder: body.slice(3), explicitMajor: true }
   }
@@ -100,7 +104,7 @@ export function parseChordSymbol(symbol: string, index = 0, source: ProgressionS
     throw new Error(`Invalid root note in chord: ${symbol}`)
   }
 
-  const sanitizedBody = bodyPart.replace(/\s+/g, '')
+  const sanitizedBody = bodyPart.replace(/[\s()]+/g, '')
   const { quality, remainder, explicitMajor } = parseQuality(sanitizedBody)
   const extensions = parseExtensions(remainder)
   ensureSupportedRemainder(remainder, extensions, symbol)

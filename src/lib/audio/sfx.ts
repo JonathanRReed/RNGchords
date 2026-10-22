@@ -1,5 +1,5 @@
 /* Lightweight tactile sound effects via Web Audio API.
- * All sounds are synthesised on the fly — no asset files.
+ * All sounds are synthesised on the fly, with no asset files.
  * The AudioContext is lazily created and resumed on first gesture.
  */
 
@@ -115,7 +115,7 @@ function scheduleWoodClack(ctx: AudioContext, when: number, strength: number): v
   gain.connect(ctx.destination)
   src.start(when)
 
-  // Short tonal body — the “woody” resonance.
+  // Short tonal body for the woody resonance.
   const osc = ctx.createOscillator()
   const og = ctx.createGain()
   osc.type = 'triangle'

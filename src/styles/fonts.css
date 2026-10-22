@@ -1,0 +1,10 @@
+/* Self-hosted. Browsers only download a face once text actually uses it, so the
+   high-legibility and OpenDyslexic files cost nothing until someone picks them. */
+@import '@fontsource-variable/manrope/wght.css';
+@import '@fontsource/cormorant-garamond/latin-500.css';
+@import '@fontsource/cormorant-garamond/latin-600.css';
+@import '@fontsource/cormorant-garamond/latin-700.css';
+@import '@fontsource/atkinson-hyperlegible/latin-400.css';
+@import '@fontsource/atkinson-hyperlegible/latin-700.css';
+@import '@fontsource/opendyslexic/latin-400.css';
+@import '@fontsource/opendyslexic/latin-700.css';

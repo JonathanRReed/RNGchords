@@ -1,0 +1,216 @@
+/*
+ * Design tokens.
+ *
+ * Two independent switches on <html>:
+ *   data-scheme  dark | light   -> page chrome (panels, text, lines)
+ *   data-theme   felt | velvet | glass | pads -> the table and the dice, plus
+ *                accent color and corner shape
+ *
+ * The table stays a dark object in both schemes, the way a real one would sit
+ * on a light desk.
+ */
+
+:root {
+  --font-body-default: 'Manrope Variable', 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-body: var(--font-body-default);
+  --font-display: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+
+  --hue: 165;
+  --accent-h: 82;
+  --accent-c: 0.11;
+  --accent-solid: oklch(0.8 var(--accent-c) var(--accent-h));
+  --on-accent: oklch(0.2 0.04 var(--accent-h));
+
+  --r-ctl: 10px;
+  --r-panel: 16px;
+  --r-die: 18px;
+
+  --tex-felt: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='f'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch' seed='4'/><feColorMatrix values='0 0 0 0 0.02 0 0 0 0 0.18 0 0 0 0 0.12 0 0 0 0.3 0'/></filter><rect width='100%25' height='100%25' filter='url(%23f)'/></svg>");
+}
+
+html[data-font='readable'] {
+  --font-body: 'Atkinson Hyperlegible', system-ui, sans-serif;
+  --font-display: var(--font-body);
+}
+
+html[data-font='dyslexic'] {
+  --font-body: 'OpenDyslexic', 'Comic Sans MS', system-ui, sans-serif;
+  --font-display: var(--font-body);
+}
+
+/* ---- Scheme: dark (default) ---- */
+html,
+html[data-scheme='dark'] {
+  color-scheme: dark;
+  --bg: oklch(0.155 0.014 var(--hue));
+  --panel: oklch(0.205 0.018 var(--hue));
+  --panel-2: oklch(0.255 0.02 var(--hue));
+  --panel-3: oklch(0.31 0.022 var(--hue));
+  --field: oklch(0.175 0.014 var(--hue));
+  --seg-track: oklch(0.175 0.014 var(--hue));
+  --seg-active: oklch(0.31 0.022 var(--hue));
+  --line: oklch(0.34 0.022 var(--hue));
+  --ink: oklch(0.95 0.01 var(--hue));
+  --ink-2: oklch(0.8 0.014 var(--hue));
+  --ink-3: oklch(0.68 0.014 var(--hue));
+  --accent: oklch(0.8 var(--accent-c) var(--accent-h));
+  --shadow: 0 1px 2px oklch(0 0 0 / 0.4), 0 10px 28px oklch(0 0 0 / 0.28);
+}
+
+/* ---- Scheme: light ---- */
+html[data-scheme='light'] {
+  color-scheme: light;
+  --bg: oklch(0.955 0.01 var(--hue));
+  --panel: oklch(0.99 0.004 var(--hue));
+  --panel-2: oklch(0.955 0.008 var(--hue));
+  --panel-3: oklch(0.925 0.012 var(--hue));
+  --field: oklch(0.995 0.003 var(--hue));
+  --seg-track: oklch(0.92 0.012 var(--hue));
+  --seg-active: oklch(0.995 0.003 var(--hue));
+  --line: oklch(0.87 0.012 var(--hue));
+  --ink: oklch(0.22 0.02 var(--hue));
+  --ink-2: oklch(0.38 0.02 var(--hue));
+  --ink-3: oklch(0.47 0.02 var(--hue));
+  --accent: oklch(0.47 var(--accent-c) var(--accent-h));
+  --shadow: 0 1px 2px oklch(0.3 0.02 var(--hue) / 0.12), 0 8px 24px oklch(0.3 0.02 var(--hue) / 0.1);
+}
+
+/* ---- Theme: Felt. Green baize, brass trim, glossy gems. ---- */
+html[data-theme='felt'] {
+  --hue: 165;
+  --accent-h: 82;
+  --accent-c: 0.11;
+  --r-ctl: 10px;
+  --r-panel: 16px;
+  --r-die: 18px;
+
+  --tray-texture: var(--tex-felt);
+  --tray-bg:
+    radial-gradient(90% 120% at 50% 0%, oklch(0.42 0.085 165 / 0.85), transparent 70%),
+    linear-gradient(oklch(0.33 0.07 165), oklch(0.23 0.05 170));
+  --tray-rim: oklch(0.72 0.1 82 / 0.5);
+  --tray-ink: oklch(0.96 0.02 165);
+  --tray-ink-2: oklch(0.83 0.04 165);
+
+  --die-edge: oklch(1 0 0 / 0.22);
+  --die-gloss: linear-gradient(oklch(1 0 0 / 0.24), transparent 46%);
+  --die-shade: inset 0 -10px 16px oklch(0 0 0 / 0.3), inset 0 1px 0 oklch(1 0 0 / 0.3);
+  --die-drop: 0 14px 22px oklch(0 0 0 / 0.38);
+
+  --die-a1: oklch(0.62 0.2 22);
+  --die-b1: oklch(0.36 0.14 15);
+  --die-ink1: oklch(0.98 0.01 80);
+  --die-a2: oklch(0.62 0.15 262);
+  --die-b2: oklch(0.34 0.13 265);
+  --die-ink2: oklch(0.98 0.01 260);
+  --die-a3: oklch(0.82 0.12 85);
+  --die-b3: oklch(0.55 0.11 70);
+  --die-ink3: oklch(0.2 0.04 70);
+  --die-a4: oklch(0.74 0.15 170);
+  --die-b4: oklch(0.4 0.1 175);
+  --die-ink4: oklch(0.98 0.02 170);
+}
+
+/* ---- Theme: Velvet. Garnet cloth, ivory dice with colored pips. ---- */
+html[data-theme='velvet'] {
+  --hue: 18;
+  --accent-h: 78;
+  --accent-c: 0.1;
+  --r-ctl: 14px;
+  --r-panel: 22px;
+  --r-die: 14px;
+
+  --tray-texture: none;
+  --tray-bg: linear-gradient(115deg, oklch(0.3 0.1 18), oklch(0.23 0.08 18) 40%, oklch(0.29 0.1 18) 56%, oklch(0.2 0.07 18));
+  --tray-rim: oklch(0.75 0.1 78 / 0.55);
+  --tray-ink: oklch(0.96 0.02 40);
+  --tray-ink-2: oklch(0.84 0.04 30);
+
+  --die-edge: oklch(0.72 0.04 80);
+  --die-gloss: none;
+  --die-shade: inset 0 -8px 12px oklch(0.55 0.05 70 / 0.28), inset 0 2px 0 oklch(1 0 0 / 0.7);
+  --die-drop: 0 12px 18px oklch(0 0 0 / 0.4);
+
+  --die-a1: oklch(0.975 0.02 90);
+  --die-b1: oklch(0.9 0.035 82);
+  --die-ink1: oklch(0.38 0.14 20);
+  --die-a2: oklch(0.97 0.018 95);
+  --die-b2: oklch(0.89 0.03 85);
+  --die-ink2: oklch(0.35 0.1 260);
+  --die-a3: oklch(0.975 0.02 85);
+  --die-b3: oklch(0.9 0.035 78);
+  --die-ink3: oklch(0.35 0.08 160);
+  --die-a4: oklch(0.97 0.015 80);
+  --die-b4: oklch(0.89 0.03 75);
+  --die-ink4: oklch(0.28 0.02 60);
+}
+
+/* ---- Theme: Glass. Blueprint grid, clear tinted dice. ---- */
+html[data-theme='glass'] {
+  --hue: 255;
+  --accent-h: 215;
+  --accent-c: 0.09;
+  --r-ctl: 8px;
+  --r-panel: 12px;
+  --r-die: 10px;
+
+  --tray-texture:
+    repeating-linear-gradient(0deg, oklch(1 0 0 / 0.05) 0 1px, transparent 1px 32px),
+    repeating-linear-gradient(90deg, oklch(1 0 0 / 0.05) 0 1px, transparent 1px 32px);
+  --tray-bg: linear-gradient(oklch(0.22 0.05 258), oklch(0.15 0.04 262));
+  --tray-rim: oklch(0.8 0.08 215 / 0.4);
+  --tray-ink: oklch(0.96 0.015 250);
+  --tray-ink-2: oklch(0.82 0.03 250);
+
+  --die-edge: oklch(0.9 0.08 215 / 0.55);
+  --die-gloss: linear-gradient(135deg, oklch(1 0 0 / 0.18), transparent 38%);
+  --die-shade: inset 0 0 22px oklch(1 0 0 / 0.07);
+  --die-drop: 0 10px 24px oklch(0 0 0 / 0.35);
+
+  --die-a1: oklch(0.6 0.15 25 / 0.5);
+  --die-b1: oklch(0.34 0.1 25 / 0.6);
+  --die-ink1: oklch(0.97 0.02 25);
+  --die-a2: oklch(0.6 0.14 255 / 0.5);
+  --die-b2: oklch(0.33 0.1 258 / 0.6);
+  --die-ink2: oklch(0.97 0.02 255);
+  --die-a3: oklch(0.78 0.12 85 / 0.5);
+  --die-b3: oklch(0.42 0.09 80 / 0.6);
+  --die-ink3: oklch(0.97 0.03 90);
+  --die-a4: oklch(0.7 0.11 185 / 0.5);
+  --die-b4: oklch(0.36 0.08 190 / 0.6);
+  --die-ink4: oklch(0.97 0.02 185);
+}
+
+/* ---- Theme: Pads. Matte hardware, flat keys with a hard drop. ---- */
+html[data-theme='pads'] {
+  --hue: 70;
+  --accent-h: 52;
+  --accent-c: 0.17;
+  --r-ctl: 6px;
+  --r-panel: 10px;
+  --r-die: 8px;
+
+  --tray-texture: radial-gradient(oklch(1 0 0 / 0.07) 1px, transparent 1.6px) 0 0 / 14px 14px;
+  --tray-bg: oklch(0.23 0.008 70);
+  --tray-rim: oklch(0.12 0.005 70);
+  --tray-ink: oklch(0.96 0.01 70);
+  --tray-ink-2: oklch(0.8 0.015 70);
+
+  --die-edge: transparent;
+  --die-gloss: none;
+  --die-shade: inset 0 -3px 0 oklch(0 0 0 / 0.2);
+  --die-drop: 0 7px 0 oklch(0.08 0.01 70);
+
+  --die-a1: oklch(0.75 0.17 52);
+  --die-b1: oklch(0.68 0.17 48);
+  --die-ink1: oklch(0.2 0.04 50);
+  --die-a2: oklch(0.76 0.12 190);
+  --die-b2: oklch(0.69 0.12 190);
+  --die-ink2: oklch(0.2 0.04 190);
+  --die-a3: oklch(0.87 0.15 95);
+  --die-b3: oklch(0.8 0.15 95);
+  --die-ink3: oklch(0.22 0.04 95);
+  --die-a4: oklch(0.73 0.17 5);
+  --die-b4: oklch(0.66 0.17 5);
+  --die-ink4: oklch(0.2 0.04 5);
+}

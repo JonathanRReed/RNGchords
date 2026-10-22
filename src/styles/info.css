@@ -1,0 +1,41 @@
+.info {
+  max-width: 720px;
+  margin: 12px auto 0;
+}
+
+.prose {
+  display: grid;
+  gap: 16px;
+  padding: clamp(24px, 5vw, 48px);
+}
+
+.prose p {
+  color: var(--ink-2);
+  line-height: 1.75;
+  max-width: 65ch;
+}
+
+.prose h1 {
+  margin-bottom: 8px;
+}
+
+.prose__date {
+  color: var(--ink-3);
+  font-size: 0.9rem;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: var(--r-ctl);
+  background: var(--accent-solid);
+  color: var(--on-accent);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.button:hover {
+  filter: brightness(1.06);
+}

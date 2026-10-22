@@ -1,4 +1,4 @@
-import { FLAT_NOTES, RHYTHM_LABELS, SHARP_NOTES } from './constants'
+import { FLAT_NOTES, SHARP_NOTES } from './constants'
 import type { ChordDescriptor, ChordQuality, ChordSeed, ExtensionToken, RootNote } from './types'
 
 const NOTE_TO_PITCH: Record<RootNote, number> = {
@@ -157,26 +157,27 @@ function applyInversion(midi: number[], inversion: number): number[] {
 
 export function extensionSummary(extensions: ExtensionToken[]): string {
   if (extensions.length === 0) {
-    return 'triad glow'
+    return 'triad'
   }
 
   return [...extensions]
     .toSorted((left, right) => TENSION_PRIORITY[left] - TENSION_PRIORITY[right])
-    .join(' · ')
+    .join(', ')
 }
 
 export function createChordLabel(root: RootNote, quality: ChordQuality, extensions: ExtensionToken[], bass?: RootNote): string {
-  const extensionPart = extensions
-    .toSorted((left, right) => TENSION_PRIORITY[left] - TENSION_PRIORITY[right])
+  const sortedExtensions = extensions.toSorted((left, right) => TENSION_PRIORITY[left] - TENSION_PRIORITY[right])
+  const extensionPart = sortedExtensions
+    .map((extension) => (extension === 'maj7' && quality !== 'maj' ? '(maj7)' : extension))
     .join('')
   const impliesMajorStack =
     quality === 'maj' &&
     !extensions.includes('maj7') &&
     (extensions.includes('9') || extensions.includes('11') || extensions.includes('13'))
   const qualityPart =
-    quality === 'dom' && extensionPart.length > 0
+    (quality === 'dom' && extensionPart.length > 0) || (quality === 'maj' && extensions.includes('maj7'))
       ? ''
-      : quality === 'maj' && (extensions.includes('maj7') || impliesMajorStack)
+      : impliesMajorStack
         ? 'maj'
         : QUALITY_LABEL[quality]
   const label = `${root}${qualityPart}${extensionPart}`
@@ -207,8 +208,3 @@ export function createChordDescriptor(seed: ChordSeed): ChordDescriptor {
   }
 }
 
-export function describeChord(chord: ChordDescriptor): string {
-  const rhythmicText = RHYTHM_LABELS[chord.rhythmBeats] ?? `${chord.rhythmBeats} beats`
-  const inversionText = chord.inversion > 0 ? ` · inversion ${chord.inversion}` : ''
-  return `${chord.label} · ${extensionSummary(chord.extensions)} · ${rhythmicText}${inversionText}`
-}

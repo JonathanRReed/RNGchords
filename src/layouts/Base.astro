@@ -1,0 +1,79 @@
+---
+import manropeLatin from "@fontsource-variable/manrope/files/manrope-latin-wght-normal.woff2?url";
+import cormorantLatin from "@fontsource/cormorant-garamond/files/cormorant-garamond-latin-600-normal.woff2?url";
+import "../styles/fonts.css";
+import "../styles/tokens.css";
+import "../styles/base.css";
+
+interface Props {
+	title: string;
+	description: string;
+	path: string;
+	jsonLd: object[];
+	/** The generator page also names the author in a meta tag. */
+	author?: boolean;
+}
+
+const { title, description, path, jsonLd, author = false } = Astro.props;
+const pageUrl = Astro.site ? new URL(path, Astro.site).toString() : undefined;
+const socialImage = Astro.site
+	? new URL("/social-card.svg", Astro.site).toString()
+	: "/social-card.svg";
+---
+
+<html lang="en" data-theme="felt" data-scheme="dark" data-font="default">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="generator" content={Astro.generator} />
+		<meta name="theme-color" content="#0f1411" />
+		<script is:inline>
+			(function () {
+				try {
+					var root = document.documentElement;
+					var saved = JSON.parse(localStorage.getItem("rng-chords-appearance") || "null");
+					var theme = saved && saved.theme;
+					if (!theme) {
+						var legacy = JSON.parse(localStorage.getItem("rng-chords-creative-session") || "{}").tableTheme;
+						theme = { emerald: "felt", crimson: "velvet", sapphire: "glass", amethyst: "pads" }[legacy];
+					}
+					var mode = (saved && saved.colorMode) || "system";
+					var dark = mode === "dark" || (mode === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+					root.dataset.theme = theme || "felt";
+					root.dataset.scheme = dark ? "dark" : "light";
+					root.dataset.font = (saved && saved.font) || "default";
+					document.querySelector('meta[name="theme-color"]').setAttribute("content", dark ? "#0f1411" : "#f4f3ef");
+				} catch (e) {}
+			})();
+		</script>
+		<link rel="icon" href="/favicon.ico" sizes="any" />
+		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png" />
+		<link rel="manifest" href="/site.webmanifest" />
+		<link rel="preload" as="font" type="font/woff2" href={manropeLatin} crossorigin />
+		<link rel="preload" as="font" type="font/woff2" href={cormorantLatin} crossorigin />
+		<title>{title}</title>
+		<meta name="description" content={description} />
+		{author ? <meta name="author" content="Jonathan R. Reed" /> : null}
+		<meta property="og:type" content="website" />
+		<meta property="og:title" content={title} />
+		<meta property="og:description" content={description} />
+		<meta property="og:image" content={socialImage} />
+		<meta name="twitter:card" content="summary_large_image" />
+		<meta name="twitter:title" content={title} />
+		<meta name="twitter:description" content={description} />
+		<meta name="twitter:image" content={socialImage} />
+		{pageUrl ? <link rel="canonical" href={pageUrl} /> : null}
+		{pageUrl ? <meta property="og:url" content={pageUrl} /> : null}
+		{
+			jsonLd.map((entry) => (
+				<script is:inline type="application/ld+json" set:html={JSON.stringify(entry).replace(/</g, "\\u003c")} />
+			))
+		}
+		<slot name="head" />
+	</head>
+	<body>
+		<slot />
+	</body>
+</html>

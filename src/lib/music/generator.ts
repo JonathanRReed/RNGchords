@@ -4,7 +4,6 @@ import {
   DEGREE_STEPS,
   KEY_CENTERS,
   RHYTHM_OPTIONS,
-  SHARP_NOTES,
 } from './constants'
 import { createChordDescriptor, fromPitchClass, toPitchClass } from './chords'
 import type {
@@ -286,7 +285,3 @@ export function createAdvancedPreset(chordCount: number, faceCounts: Partial<Rec
   }
 }
 
-export function formatKeyBadge(root: RootNote): string {
-  const noteIndex = SHARP_NOTES.findIndex((note) => note === root)
-  return noteIndex >= 0 ? `${root} center` : `${root} tonal center`
-}

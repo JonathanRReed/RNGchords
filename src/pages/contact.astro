@@ -1,24 +1,18 @@
 ---
-import "../styles/global.css";
-import "../styles/tactile.css";
+import InfoPage from "../layouts/InfoPage.astro";
 
-const pageTitle = "Contact RNG Chords | Jonathan R. Reed Music Tool";
-const pageDescription =
+const title = "Contact RNG Chords | Jonathan R. Reed Music Tool";
+const description =
 	"Contact Jonathan R. Reed about RNG Chords, the free browser-based chord progression generator for songwriting and MIDI sketching.";
-const pageUrl = Astro.site ? new URL("/contact/", Astro.site).toString() : undefined;
-const socialImage = Astro.site
-	? new URL("/social-card.svg", Astro.site).toString()
-	: "/social-card.svg";
-const publishedDate = "2026-04-21";
-const modifiedDate = "2026-08-04";
+const published = "2026-04-21";
 const structuredData = {
 	"@context": "https://schema.org",
 	"@type": "ContactPage",
 	name: "Contact RNG Chords",
-	description: pageDescription,
-	...(pageUrl ? { url: pageUrl } : {}),
-	datePublished: publishedDate,
-	dateModified: modifiedDate,
+	description,
+	url: new URL("/contact/", Astro.site ?? "https://rngchords.jonathanrreed.com").toString(),
+	datePublished: published,
+	dateModified: "2026-08-04",
 	author: {
 		"@type": "Person",
 		name: "Jonathan R. Reed",
@@ -27,78 +21,32 @@ const structuredData = {
 };
 ---
 
-<html lang="en">
-	<head>
-		<meta charset="utf-8" />
-		<script is:inline>try{var t=JSON.parse(localStorage.getItem("rng-chords-creative-session")||"{}").tableTheme;if(t)document.documentElement.setAttribute("data-theme",t);}catch(e){}</script>
-		<link rel="icon" href="/favicon.ico" sizes="any">
-		<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png">
-		<link rel="manifest" href="/site.webmanifest">
-		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="generator" content={Astro.generator} />
-		<meta name="theme-color" content="#0b0706" />
-		<meta name="description" content={pageDescription} />
-		<meta property="og:type" content="website" />
-		<meta property="og:title" content={pageTitle} />
-		<meta property="og:description" content={pageDescription} />
-		<meta property="og:image" content={socialImage} />
-		<meta name="twitter:card" content="summary_large_image" />
-		<meta name="twitter:title" content={pageTitle} />
-		<meta name="twitter:description" content={pageDescription} />
-		<meta name="twitter:image" content={socialImage} />
-		{pageUrl ? <link rel="canonical" href={pageUrl} /> : null}
-		{pageUrl ? <meta property="og:url" content={pageUrl} /> : null}
-		<link rel="preconnect" href="https://fonts.googleapis.com" />
-		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-		<link
-			href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
-			rel="stylesheet"
-		/>
-		<title>{pageTitle}</title>
-		<script
-			is:inline
-			type="application/ld+json"
-			set:html={JSON.stringify(structuredData).replace(/</g, "\\u003c")}
-		/>
-	</head>
-	<body>
-		<main class="info-page">
-			<a class="info-page__back" href="/">RNG Chords</a>
-			<nav class="sr-only" aria-label="RNG Chords utility pages">
-				<a href="/">RNG Chords generator</a>
-				<a href="/about/">About RNG Chords</a>
-				<a href="/privacy/">RNG Chords privacy policy</a>
-			</nav>
-			<section class="info-page__panel panel-surface">
-				<p class="panel-title__eyebrow">Contact</p>
-				<h1>Contact Jonathan about RNG Chords.</h1>
-				<p>
-					Feedback, bug reports, accessibility problems, and feature ideas for
-					RNG Chords all go through Jonathan R. Reed's main contact page.
-				</p>
-				<p>
-					If something broke, tell me the browser, whether playback ever started,
-					which instrument was selected, and what you were doing when it went
-					wrong: rolling chords, keeping a progression, copying text, or
-					exporting MIDI. A progression that just sounds bad is a different
-					report, so include the mode, key, tempo, and any chords you had kept.
-				</p>
-				<p>
-					For feature ideas, describe the musical problem instead of naming a
-					control. "I need more borrowed chords in minor keys" tells me far more
-					than a request for more randomness.
-				</p>
-				<p>
-					<a class="info-page__button" href="https://jonathanrreed.com/contact/">
-						Open Jonathan's contact page
-					</a>
-				</p>
-				<p class="info-page__meta">
-					Published <time datetime={publishedDate}>April 21, 2026</time>.
-				</p>
-			</section>
-		</main>
-	</body>
-</html>
+<InfoPage
+	title={title}
+	description={description}
+	path="/contact/"
+	heading="Contact"
+	jsonLd={[structuredData]}
+	dateLabel="Published"
+	date={published}
+>
+	<p>
+		Feedback, bug reports, accessibility problems, and feature ideas all go
+		through my main contact page.
+	</p>
+	<p>
+		If something broke, tell me the browser, whether playback ever started,
+		which sound you had selected, and what you were doing when it failed:
+		rolling, keeping chords, copying text, or exporting MIDI. If a progression
+		just sounds bad, that's a different report. Include the mode, key, tempo,
+		and any chords you had kept.
+	</p>
+	<p>
+		For feature ideas, describe the musical problem instead of naming a
+		control. "I need more borrowed chords in minor keys" tells me more than a
+		request for more randomness.
+	</p>
+	<p>
+		<a class="button" href="https://jonathanrreed.com/contact/">Open my contact page</a>
+	</p>
+</InfoPage>

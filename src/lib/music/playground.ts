@@ -18,16 +18,16 @@ export interface PlaygroundPreset {
 
 export const INSTRUMENT_FOCUS_COPY: Record<InstrumentFocus, { label: string; detail: string }> = {
   guitar: {
-    label: 'Guitar focus',
-    detail: 'Lean toward shapes that feel good on guitar right away.',
+    label: 'Guitar',
+    detail: 'Tips for shapes that fall under the fingers on guitar.',
   },
   piano: {
-    label: 'Piano focus',
-    detail: 'Lean toward voicings that move smoothly under your hands.',
+    label: 'Piano',
+    detail: 'Tips for voicings that move smoothly under your hands.',
   },
   both: {
-    label: 'Anything goes',
-    detail: 'Just chase a good idea and play it however you want.',
+    label: 'Either',
+    detail: 'General tips for any instrument.',
   },
 }
 
@@ -35,29 +35,29 @@ export const PLAYGROUND_PRESETS: PlaygroundPreset[] = [
   {
     id: 'campfire-glow',
     label: 'Campfire Glow',
-    strapline: 'Friendly chords that are easy to grab and fun to loop.',
+    strapline: 'Easy chords that are quick to grab and good to loop.',
     mode: 'guided',
     guidedFaces: [6, 6, 8, 8],
     complexity: 'basic',
     tempo: 86,
     instrumentFocus: 'guitar',
-    status: 'Campfire Glow is ready. Expect simple, easygoing chords.',
+    status: 'Campfire Glow: simple, easygoing chords.',
   },
   {
     id: 'velvet-keys',
     label: 'Velvet Keys',
-    strapline: 'Softer, richer chords for slower moods and extra color.',
+    strapline: 'Softer, richer chords for slow moods.',
     mode: 'guided',
     guidedFaces: [8, 10, 12, 12],
     complexity: 'balanced',
     tempo: 74,
     instrumentFocus: 'piano',
-    status: 'Velvet Keys is ready. Expect softer motion and richer harmony.',
+    status: 'Velvet Keys: softer motion, richer harmony.',
   },
   {
     id: 'happy-accident',
     label: 'Happy Accident',
-    strapline: 'Let things wander and keep the weird bits that work.',
+    strapline: 'Let it wander. Keep the weird bits that work.',
     mode: 'advanced',
     advancedConfig: {
       chordCount: 5,
@@ -72,23 +72,23 @@ export const PLAYGROUND_PRESETS: PlaygroundPreset[] = [
     complexity: 'wild',
     tempo: 104,
     instrumentFocus: 'both',
-    status: 'Happy Accident is ready. This one likes surprises.',
+    status: 'Happy Accident: five dice, tense chords, no safety net.',
   },
   {
     id: 'curious-ears',
     label: 'Curious Ears',
-    strapline: 'Shorter, cleaner ideas for messing around without pressure.',
+    strapline: 'Short, clean ideas for messing around.',
     mode: 'guided',
     guidedFaces: [4, 6, 6],
     complexity: 'basic',
     tempo: 96,
     instrumentFocus: 'both',
-    status: 'Curious Ears is ready. Small rolls, quick ideas, no pressure.',
+    status: 'Curious Ears: three dice, quick ideas.',
   },
 ]
 
 function voiceTail(chord: ChordDescriptor, count: number): string {
-  return chord.notes.slice(-count).join(' · ')
+  return chord.notes.slice(-count).join(' ')
 }
 
 function bassName(chord: ChordDescriptor): string {
@@ -133,8 +133,8 @@ export function createPlayerTips(progression: ProgressionResult, focus: Instrume
 
   return [
     'Hear the idea once, then try to play it back by ear on your own instrument.',
-    `Use the note pills as a cheat sheet: the first chord starts with ${voiceTail(firstChord, Math.min(3, firstChord.notes.length))}.`,
-    `Let ${lastChord.label} ring out at the end and see how it feels.`,
+    `The first chord is built from ${voiceTail(firstChord, Math.min(3, firstChord.notes.length))}. Find them on your instrument.`,
+    `Let ${lastChord.label} ring at the end and notice how it feels.`,
   ]
 }
 

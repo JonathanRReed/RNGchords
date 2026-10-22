@@ -12,27 +12,27 @@ export type PlaybackInstrument =
 export const PLAYBACK_INSTRUMENT_COPY: Record<PlaybackInstrument, { label: string; detail: string }> = {
   'warm-piano': {
     label: 'Warm Piano',
-    detail: 'Clean and simple for easy sketching.',
+    detail: 'Clean and simple for sketching.',
   },
   'electric-piano': {
     label: 'Electric Piano',
-    detail: 'A little softer and wobblier in a good way.',
+    detail: 'Softer, with a slight wobble.',
   },
   'soft-organ': {
     label: 'Soft Organ',
-    detail: 'Longer sustain for slower, floatier ideas.',
+    detail: 'Long sustain for slow ideas.',
   },
   'bright-piano': {
     label: 'Bright Piano',
-    detail: 'Sharper and snappier when you want the chords to pop.',
+    detail: 'Sharper, so the chords stand out.',
   },
   'glass-bells': {
     label: 'Glass Bells',
-    detail: 'Chimey and delicate for lighter, sparkly ideas.',
+    detail: 'Light and chimey.',
   },
   'mellow-pad': {
     label: 'Mellow Pad',
-    detail: 'Slow and soft for dreamy layers and longer holds.',
+    detail: 'Slow and soft, for long holds.',
   },
 }
 

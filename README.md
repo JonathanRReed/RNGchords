@@ -2,15 +2,15 @@
 
 Dice pick the chords, the browser plays them back, and MIDI export gets the idea out. Keep what works, reroll the rest.
 
-RNG Chords is for sketching progressions without opening a DAW. Choose guided or advanced generation, enter chords yourself, or mix both.
+RNG Chords is for sketching progressions without opening a DAW. Roll with Easy or Advanced dice, or enter chords yourself.
 
-## Try a progression
+## Using it
 
-Choose an instrument focus and `Easy`, `Color`, or `Tension` complexity. Click `Roll New Idea` or `Roll This Setup`. `Surprise Me` also randomizes the musical setup and playback instrument.
+Pick a mode: **Easy** rolls from a preset dice setup, **Advanced** lets you choose each die, and **Manual** takes chord names you type or build. Set the chord style (`Simple`, `Color`, or `Tension`), then press `Roll the dice`. `Surprise me` also randomizes the setup and sound.
 
-Use `Keep` to pin a chord, `Reroll` to replace one slot, or `Reroll Unlocked` to change everything unpinned. Save versions in `A`, `B`, and `C`; select a filled slot to restore it. The app also restores the last session after a refresh.
+Use `Keep` to pin a chord, `Reroll` to replace one, or `Reroll unkept` to change the rest. Save versions to `A`, `B`, and `C`. The app restores your last idea after a refresh.
 
-Pick an instrument, tempo, and rhythm `Feel`, then use `Play`, `Stop`, and `Loop`. Preview individual chords or turn on theory labels. The manual builder also accepts symbols such as `Cmaj7, Am7, D7, Gmaj7`. Use `Export MIDI` to continue in another app.
+Pick a sound, tempo, and rhythm feel, then use `Play`, `Loop`, and `Export MIDI`. Manual mode accepts symbols such as `Cmaj7, Am7, D7, Cm(maj7)`.
 
 | Key | Action |
 | --- | --- |
@@ -18,11 +18,13 @@ Pick an instrument, tempo, and rhythm `Feel`, then use `Play`, `Stop`, and `Loop
 | `←` / `→` | Preview the neighboring chord |
 | `Enter` | Replay the selected chord |
 
-Browser audio may need an initial click before it can play. Musical judgment stays with you; a generated progression is a starting point.
+The `Appearance` menu holds color mode (system, light, dark), four table themes (felt, velvet, glass, pads), three text options (default, high legibility, OpenDyslexic), and the roll motion (several styles, or instant).
+
+Browser audio may need an initial click before it can play. A generated progression is a starting point.
 
 ## Develop
 
-The app uses Astro, React, Motion, Tone.js, and Bun.
+Astro, React, Tone.js, and Bun.
 
 ```sh
 bun install
@@ -30,10 +32,15 @@ bun run dev
 ```
 
 ```sh
-bun run lint && bun run typecheck && bun test
+bun run typecheck && bun run test
 bun run build
 ```
 
-Components, music logic, routes, and styles live under `src/`. Tests are in `tests/`; static assets are in `public/`.
+Layout of `src/`:
 
-Set `SITE_URL` in production so social metadata uses absolute URLs.
+- `app/` holds the React app: `useWorkstation` (all state and actions), `usePlayer`, `useAppearance`, saved-session and appearance parsing, and `components/`.
+- `lib/music/` and `lib/audio/` hold chord generation, parsing, playback, and MIDI. `lib/dice/flips.ts` holds the roll animations (Web Animations, transform and opacity only).
+- `styles/` holds `tokens.css` (color schemes and table themes), `base.css`, `app.css`, and `info.css`.
+- `layouts/` and `pages/` are the Astro shell and the static pages.
+
+Tests are in `tests/`; static assets are in `public/`. Set `SITE_URL` in production so social metadata uses absolute URLs.
