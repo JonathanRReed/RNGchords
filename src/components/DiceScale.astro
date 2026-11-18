@@ -1,0 +1,30 @@
+---
+import { getDieShape } from "../lib/dice/shapes";
+
+const dice = [4, 6, 8, 10, 12, 20];
+---
+
+<figure class="dice-scale">
+	<ol>
+		{
+			dice.map((faces) => {
+				const shape = getDieShape(faces);
+				return (
+					<li>
+						<svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+							<polygon class="dice-scale__hull" points={shape.hull} />
+							{shape.facets.map((facet) => (
+								<polygon class="dice-scale__facet" points={facet.points} />
+							))}
+						</svg>
+						<span>d{faces}</span>
+					</li>
+				);
+			})
+		}
+	</ol>
+	<figcaption>
+		<span>Stays close to the key</span>
+		<span>Wanders further</span>
+	</figcaption>
+</figure>

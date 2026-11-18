@@ -14,8 +14,8 @@ export interface PlaygroundPreset {
 export const PLAYGROUND_PRESETS: PlaygroundPreset[] = [
   {
     id: 'campfire-glow',
-    label: 'Campfire glow',
-    strapline: 'Plain chords at a walking pace. Easy to loop.',
+    label: 'Four plain chords',
+    strapline: 'Triads at a walking pace. Easy to loop.',
     mode: 'guided',
     guidedFaces: [6, 6, 8, 8],
     complexity: 'basic',
@@ -23,8 +23,8 @@ export const PLAYGROUND_PRESETS: PlaygroundPreset[] = [
   },
   {
     id: 'velvet-keys',
-    label: 'Velvet hour',
-    strapline: 'Slower, with 7ths and 9ths on most chords.',
+    label: 'Slow, with 7ths',
+    strapline: 'Four chords, most with a 7th or 9th on top.',
     mode: 'guided',
     guidedFaces: [8, 10, 12, 12],
     complexity: 'balanced',
@@ -32,8 +32,8 @@ export const PLAYGROUND_PRESETS: PlaygroundPreset[] = [
   },
   {
     id: 'happy-accident',
-    label: 'Happy accident',
-    strapline: 'Five chords, every one with some tension. Keep what lands.',
+    label: 'Five tense chords',
+    strapline: 'Every chord gets an extension. Keep what lands.',
     mode: 'advanced',
     advancedConfig: {
       chordCount: 5,
@@ -50,8 +50,8 @@ export const PLAYGROUND_PRESETS: PlaygroundPreset[] = [
   },
   {
     id: 'curious-ears',
-    label: 'Short and sweet',
-    strapline: 'Three chords. Quick to learn, quick to reroll.',
+    label: 'Three chords',
+    strapline: 'Small dice, plain chords. Quick to reroll.',
     mode: 'guided',
     guidedFaces: [4, 6, 6],
     complexity: 'basic',

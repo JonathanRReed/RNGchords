@@ -1,40 +1,42 @@
 .info {
-  max-width: 720px;
-  margin: 12px auto 0;
+  max-width: 44rem;
+  margin: 24px 0 0;
 }
 
 .prose {
   display: grid;
   gap: 16px;
-  padding: clamp(24px, 5vw, 48px);
 }
 
-.prose p {
+.prose p,
+.prose ul {
+  max-width: 66ch;
   color: var(--ink-2);
-  line-height: 1.75;
-  max-width: 65ch;
+  line-height: 1.7;
 }
 
 .prose h1 {
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  font-size: clamp(2rem, 5vw, 3.1rem);
+  font-weight: 650;
+  letter-spacing: -0.02em;
 }
 
 .prose h2 {
-  margin-top: 20px;
+  margin-top: 28px;
+  font-size: clamp(1.4rem, 3vw, 1.75rem);
 }
 
 .prose h3 {
-  margin-top: 6px;
+  margin-top: 10px;
+  font-size: 1.15rem;
 }
 
 .prose ul {
   display: grid;
   gap: 8px;
-  max-width: 65ch;
   margin: 0;
   padding-left: 1.2rem;
-  color: var(--ink-2);
-  line-height: 1.75;
 }
 
 .prose strong {
@@ -45,12 +47,15 @@
   padding: 1px 6px;
   border: 1px solid var(--line);
   border-radius: 6px;
-  background: var(--panel-2);
-  font-size: 0.9em;
+  background: var(--panel);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 0.95em;
   white-space: nowrap;
 }
 
 .prose__date {
+  margin-top: 16px;
   color: var(--ink-3);
   font-size: 0.9rem;
 }
@@ -69,4 +74,62 @@
 
 .button:hover {
   filter: brightness(1.06);
+}
+
+/* The six dice in order of size, on the About page. */
+.dice-scale {
+  max-width: 34rem;
+  margin: 8px 0;
+  padding: 20px 20px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-panel);
+  background: var(--panel);
+}
+
+.dice-scale ol {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dice-scale li {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.dice-scale svg {
+  width: min(100%, 52px);
+  overflow: visible;
+}
+
+.dice-scale__hull {
+  fill: var(--panel-3);
+  stroke: var(--ink-2);
+  stroke-width: 3.5;
+  stroke-linejoin: round;
+}
+
+.dice-scale__facet {
+  fill: none;
+  stroke: var(--ink-3);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.dice-scale figcaption {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-3);
+  font-size: 0.82rem;
 }

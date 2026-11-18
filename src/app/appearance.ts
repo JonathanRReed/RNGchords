@@ -1,4 +1,4 @@
-import { DEFAULT_FLIP, isFlipStyle, type FlipStyle } from '../lib/dice/flips'
+import { DEFAULT_FLIP, parseFlip, type FlipStyle } from '../lib/dice/flips'
 
 export type ColorMode = 'system' | 'light' | 'dark'
 export type TableTheme = 'felt' | 'velvet' | 'glass' | 'pads'
@@ -30,14 +30,14 @@ export const COLOR_MODES: ReadonlyArray<{ id: ColorMode; label: string }> = [
 ]
 
 export const TABLE_THEMES: ReadonlyArray<{ id: TableTheme; label: string; detail: string; tray: string; die: string }> = [
-  { id: 'felt', label: 'Felt', detail: 'Green baize, brass trim, glossy gem dice.', tray: 'oklch(0.34 0.07 165)', die: 'oklch(0.62 0.2 22)' },
+  { id: 'felt', label: 'Felt', detail: 'Green baize, brass rail, glossy gem dice.', tray: 'oklch(0.34 0.07 165)', die: 'oklch(0.62 0.2 22)' },
   { id: 'velvet', label: 'Velvet', detail: 'Garnet cloth with ivory dice.', tray: 'oklch(0.28 0.09 18)', die: 'oklch(0.95 0.02 85)' },
-  { id: 'glass', label: 'Glass', detail: 'Blueprint grid with clear glass dice.', tray: 'oklch(0.2 0.05 258)', die: 'oklch(0.7 0.12 215)' },
-  { id: 'pads', label: 'Pads', detail: 'Matte hardware with flat, clicky keys.', tray: 'oklch(0.25 0.008 70)', die: 'oklch(0.72 0.17 50)' },
+  { id: 'glass', label: 'Glass', detail: 'Blueprint grid, tinted glass dice lit at the edges.', tray: 'oklch(0.2 0.05 258)', die: 'oklch(0.7 0.12 215)' },
+  { id: 'pads', label: 'Pads', detail: 'Matte hardware, flat plastic dice with dark edges.', tray: 'oklch(0.25 0.008 70)', die: 'oklch(0.72 0.17 50)' },
 ]
 
 export const TEXT_FONTS: ReadonlyArray<{ id: TextFont; label: string; detail: string }> = [
-  { id: 'default', label: 'Default', detail: 'Cormorant Garamond headings, Manrope text.' },
+  { id: 'default', label: 'Default', detail: 'Besley headings, Libre Franklin text.' },
   { id: 'readable', label: 'High legibility', detail: 'Atkinson Hyperlegible everywhere.' },
   { id: 'dyslexic', label: 'OpenDyslexic', detail: 'Weighted letter shapes with extra spacing.' },
 ]
@@ -65,7 +65,7 @@ export function parseAppearance(raw: string | null): Appearance {
       colorMode: oneOf(saved.colorMode, COLOR_MODES, DEFAULT_APPEARANCE.colorMode),
       theme: oneOf(saved.theme, TABLE_THEMES, DEFAULT_APPEARANCE.theme),
       font: oneOf(saved.font, TEXT_FONTS, DEFAULT_APPEARANCE.font),
-      flip: isFlipStyle(saved.flip) ? saved.flip : null,
+      flip: parseFlip(saved.flip),
       sound: typeof saved.sound === 'boolean' ? saved.sound : DEFAULT_APPEARANCE.sound,
     }
   } catch {

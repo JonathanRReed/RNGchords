@@ -1,6 +1,7 @@
 import { memo, useId, useLayoutEffect, useRef, type CSSProperties } from 'react'
 import { getDieAnimation, type FlipStyle } from '../../lib/dice/flips'
 import { CUBE_FACE_MATRIX, getDieShape, getPips, hashString } from '../../lib/dice/shapes'
+import { faceText } from '../format'
 import type { StageDie } from '../types'
 
 interface DieCardProps {
@@ -54,7 +55,7 @@ export const DieCard = memo(function DieCard({ die, accent, sequence, rollId, fl
   }, [rollId, flip, sequence])
 
   const shape = getDieShape(die.faces)
-  const text = die.value
+  const text = faceText(die.face)
   const seed = hashString(`${die.id}:${rollId}`)
   const tilt = ((seed % 15) - 7) * 0.9
   const sidePips = [(seed % 6) + 1, ((seed >> 4) % 6) + 1]

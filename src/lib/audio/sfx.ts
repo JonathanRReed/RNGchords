@@ -203,10 +203,115 @@ export function playDiceRoll(dieCount = 4): void {
   scheduleSettleThud(ctx, now + duration + 0.04, 0.85)
 }
 
-/** Kept for backward compatibility with existing callers. */
-export function playDiceThud(strength = 1): void {
-  const ctx = getContext()
-  if (!ctx) return
-  scheduleSettleThud(ctx, ctx.currentTime, strength)
+/** What a die sounds like against each table: where the knock sits, how long it rings, and how much thud is under it. */
+const TABLE_VOICES = {
+  felt: { table: 240, die: 2100, ring: 0.035, thud: 1, tone: 'triangle' },
+  velvet: { table: 190, die: 1700, ring: 0.045, thud: 1.2, tone: 'triangle' },
+  glass: { table: 1500, die: 4200, ring: 0.16, thud: 0.25, tone: 'sine' },
+  pads: { table: 520, die: 2600, ring: 0.02, thud: 0.6, tone: 'square' },
+} as const
+
+export type TableVoice = keyof typeof TABLE_VOICES
+
+interface Knock {
+  time: number
+  strength: number
+  kind: 'table' | 'wall' | 'die'
 }
 
+const MAX_KNOCKS = 60
+
+/**
+ * Plays a recorded throw: one knock for each time a die hit the table, a
+ * wall, or another die, at the moment it happened and as hard as it happened.
+ */
+export function playImpacts(knocks: Knock[], table: TableVoice): void {
+  if (sfxMuted || knocks.length === 0) {
+    return
+  }
+
+  const ctx = getContext()
+
+  if (!ctx) {
+    return
+  }
+
+  const voice = TABLE_VOICES[table]
+  const sampleRate = ctx.sampleRate
+  const start = ctx.currentTime + 0.02
+  // Too many dice at once would clip, so the loudest knocks are kept and the level comes down a little.
+  const heard = knocks.length > MAX_KNOCKS ? [...knocks].sort((left, right) => right.strength - left.strength).slice(0, MAX_KNOCKS) : knocks
+  const level = Math.min(1, 9 / Math.sqrt(heard.length * 6))
+  const length = Math.floor(sampleRate * 0.25)
+  const noise = ctx.createBuffer(1, length, sampleRate)
+  const data = noise.getChannelData(0)
+
+  for (let index = 0; index < length; index += 1) {
+    data[index] = Math.random() * 2 - 1
+  }
+
+  const out = ctx.createGain()
+  out.gain.value = level
+  out.connect(ctx.destination)
+
+  for (const knock of heard) {
+    const when = start + knock.time
+    const force = 0.18 + knock.strength * 0.82
+    const pitch = (knock.kind === 'die' ? voice.die : knock.kind === 'wall' ? voice.table * 1.9 : voice.table) * (0.85 + Math.random() * 0.3)
+    const ring = voice.ring * (knock.kind === 'die' ? 0.6 : 1) * (0.8 + Math.random() * 0.4)
+
+    // The contact itself: a short burst of filtered noise.
+    const source = ctx.createBufferSource()
+    const band = ctx.createBiquadFilter()
+    const gain = ctx.createGain()
+    source.buffer = noise
+    band.type = 'bandpass'
+    band.frequency.value = pitch
+    band.Q.value = knock.kind === 'die' ? 5 : 1.6
+    gain.gain.setValueAtTime(0.0001, when)
+    gain.gain.exponentialRampToValueAtTime((knock.kind === 'die' ? 0.5 : 0.36) * force, when + 0.002)
+    gain.gain.exponentialRampToValueAtTime(0.0001, when + ring + 0.03)
+    source.connect(band)
+    band.connect(gain)
+    gain.connect(out)
+    source.start(when, Math.random() * 0.1, ring + 0.06)
+
+    // The body under it: a low note that drops, heavier on cloth than on glass.
+    if (knock.kind !== 'die' || table === 'glass') {
+      const body = ctx.createOscillator()
+      const bodyGain = ctx.createGain()
+      const base = knock.kind === 'die' ? pitch : knock.kind === 'wall' ? 210 : 105 + Math.random() * 40
+      body.type = voice.tone
+      body.frequency.setValueAtTime(base * 1.5, when)
+      body.frequency.exponentialRampToValueAtTime(base, when + 0.05)
+      bodyGain.gain.setValueAtTime(0.0001, when)
+      bodyGain.gain.exponentialRampToValueAtTime(0.3 * force * voice.thud * (knock.kind === 'die' ? 0.35 : 1), when + 0.006)
+      bodyGain.gain.exponentialRampToValueAtTime(0.0001, when + 0.07 + ring * 2)
+      body.connect(bodyGain)
+      bodyGain.connect(out)
+      body.start(when)
+      body.stop(when + 0.12 + ring * 2)
+    }
+  }
+
+  // Phones with a vibration motor get the first hard landings in the hand as well.
+  if (typeof navigator !== 'undefined' && typeof navigator.vibrate === 'function') {
+    // The pattern alternates buzz and pause and has to open with a buzz, so it opens with an empty one.
+    const pattern = [0]
+    let clock = 0
+
+    for (const knock of knocks.filter((entry) => entry.kind === 'table' && entry.strength > 0.3).slice(0, 5)) {
+      const at = Math.round(knock.time * 1000)
+      const buzz = Math.round(8 + knock.strength * 14)
+
+      if (at >= clock) {
+        pattern.push(at - clock, buzz)
+        clock = at + buzz
+      }
+    }
+
+    if (pattern.length > 1) {
+      navigator.vibrate(pattern)
+    }
+  }
+}

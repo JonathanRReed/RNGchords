@@ -1,18 +1,28 @@
-export type FlipStyle = 'tumble' | 'coin' | 'card' | 'reel' | 'drop' | 'none'
+/**
+ * How the dice move on a roll. The 3D table throws real solids; these flat
+ * animations are what the fallback dice do when WebGL is not available.
+ */
+export type FlipStyle = 'throw' | 'drop' | 'none'
 
 export const FLIP_OPTIONS: ReadonlyArray<{ id: FlipStyle; label: string; detail: string }> = [
-  { id: 'tumble', label: 'Tumble', detail: 'Tossed up, one somersault, lands with a squash.' },
-  { id: 'coin', label: 'Coin toss', detail: 'Spins like a coin on its way up and down.' },
-  { id: 'card', label: 'Card flip', detail: 'A quick turn over, face down to face up.' },
-  { id: 'reel', label: 'Slot reel', detail: 'The old value rolls out and the new one rolls in.' },
-  { id: 'drop', label: 'Drop', detail: 'Falls from above and bounces once.' },
-  { id: 'none', label: 'Instant', detail: 'No motion. Values swap in place.' },
+  { id: 'throw', label: 'Throw', detail: 'Tossed from your side of the table. They bounce, knock into each other, and settle.' },
+  { id: 'drop', label: 'Drop', detail: 'Let go from above. Less travel, more bounce.' },
+  { id: 'none', label: 'Instant', detail: 'No motion. The dice are set down showing the result.' },
 ]
 
-export const DEFAULT_FLIP: FlipStyle = 'tumble'
+export const DEFAULT_FLIP: FlipStyle = 'throw'
 
 export function isFlipStyle(value: unknown): value is FlipStyle {
   return FLIP_OPTIONS.some((option) => option.id === value)
+}
+
+/** Reads a saved choice, including the names the flat animations used to have. */
+export function parseFlip(value: unknown): FlipStyle | null {
+  if (isFlipStyle(value)) {
+    return value
+  }
+
+  return value === 'tumble' || value === 'coin' || value === 'card' || value === 'reel' ? 'throw' : null
 }
 
 export interface DieAnimation {
@@ -68,58 +78,6 @@ function tumble(sequence: number): DieAnimation {
   }
 }
 
-function coin(sequence: number): DieAnimation {
-  const duration = between(780, 880)
-  const delay = sequence * STAGGER_MS
-  const lift = between(70, 96)
-
-  return {
-    target: 'body',
-    keyframes: [
-      { transform: pose(0), offset: 0, easing: 'cubic-bezier(0.2, 0.7, 0.4, 1)' },
-      { transform: pose(-lift, 0, 540, 0, 1, 1), offset: 0.45, easing: 'cubic-bezier(0.6, 0, 0.9, 0.5)' },
-      { transform: pose(6, 0, 1080, 0, 1.04, 0.96), offset: 0.74 },
-      { transform: pose(-4, 0, 1080, 0, 0.99, 1.01), offset: 0.88 },
-      { transform: pose(0, 0, 1080, 0, 1, 1), offset: 1 },
-    ],
-    options: { duration, delay, fill: 'backwards' },
-    shadow: shadowFrames(duration, delay, lift),
-  }
-}
-
-function card(sequence: number): DieAnimation {
-  const duration = 460
-  const delay = sequence * STAGGER_MS
-
-  return {
-    target: 'body',
-    keyframes: [
-      { transform: pose(0, 0, 180), offset: 0, easing: 'cubic-bezier(0.2, 0.8, 0.3, 1)' },
-      { transform: pose(-10, 0, 62, 0, 1.02, 1.02), offset: 0.55, easing: 'cubic-bezier(0.3, 0, 0.3, 1)' },
-      { transform: pose(0, 0, -6), offset: 0.85 },
-      { transform: pose(0, 0, 0), offset: 1 },
-    ],
-    options: { duration, delay, fill: 'backwards' },
-    shadow: shadowFrames(duration, delay, 24),
-  }
-}
-
-function reel(sequence: number): DieAnimation {
-  const duration = 520
-  const delay = sequence * STAGGER_MS
-
-  return {
-    target: 'content',
-    keyframes: [
-      { transform: 'translateY(0)', opacity: 1, offset: 0, easing: 'cubic-bezier(0.5, 0, 0.9, 0.5)' },
-      { transform: 'translateY(-115%)', opacity: 0, offset: 0.34 },
-      { transform: 'translateY(115%)', opacity: 0, offset: 0.35, easing: 'cubic-bezier(0.2, 0.9, 0.3, 1.15)' },
-      { transform: 'translateY(0)', opacity: 1, offset: 1 },
-    ],
-    options: { duration, delay, fill: 'backwards' },
-  }
-}
-
 function drop(sequence: number): DieAnimation {
   const duration = 620
   const delay = sequence * STAGGER_MS
@@ -140,18 +98,5 @@ function drop(sequence: number): DieAnimation {
 }
 
 export function getDieAnimation(style: FlipStyle, sequence: number): DieAnimation | null {
-  switch (style) {
-    case 'tumble':
-      return tumble(sequence)
-    case 'coin':
-      return coin(sequence)
-    case 'card':
-      return card(sequence)
-    case 'reel':
-      return reel(sequence)
-    case 'drop':
-      return drop(sequence)
-    default:
-      return null
-  }
+  return style === 'throw' ? tumble(sequence) : style === 'drop' ? drop(sequence) : null
 }

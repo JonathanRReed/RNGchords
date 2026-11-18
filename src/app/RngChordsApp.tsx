@@ -1,14 +1,11 @@
-import { useCallback, useEffect, useEffectEvent, useMemo, useRef, type CSSProperties } from 'react'
-import { playDiceRoll } from '../lib/audio/sfx'
+import { useCallback, useEffect, useEffectEvent, useMemo, type CSSProperties } from 'react'
 import { ADVANCED_PARAMETER_LABELS, ADVANCED_PARAMETERS, RHYTHM_LABELS } from '../lib/music/constants'
-import { ChordRack } from './components/ChordRack'
-import { Controls } from './components/Controls'
-import { DiceTray } from './components/DiceTray'
+import { ChordSymbol } from './components/ChordSymbol'
+import { DiceTable } from './components/DiceTable'
 import { Header } from './components/Header'
-import { ModeTabs } from './components/ModeTabs'
-import { Presets } from './components/Presets'
-import { Transport } from './components/Transport'
-import { formatAdvancedFace, formatDieChord, formatDuration, formatSource, totalBeats } from './format'
+import { Setup } from './components/Setup'
+import { Sheet } from './components/Sheet'
+import { chordDieOthers, dieFace, formatAdvancedFace, formatDuration, parameterDieOthers, totalBeats } from './format'
 import { encodeShare, formatChart } from './share'
 import type { StageDie } from './types'
 import { useAppearance } from './useAppearance'
@@ -23,7 +20,7 @@ const INTERACTIVE_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A'])
 
 export default function RngChordsApp() {
   const { appearance, update: updateAppearance, flip } = useAppearance()
-  const { state, display, status, manualIssues, rollId, actions } = useWorkstation()
+  const { state, display, status, manualIssues, roll, canUndo, actions } = useWorkstation()
   const player = usePlayer({
     source: state.progression,
     display,
@@ -34,34 +31,43 @@ export default function RngChordsApp() {
   })
 
   const { chords } = display
+  const { keyCenter } = state.progression
   const duration = formatDuration(totalBeats(chords), state.tempo)
 
   const dice = useMemo<StageDie[]>(() => {
     if (state.mode === 'advanced') {
       return ADVANCED_PARAMETERS.map((parameter) => {
         const { face, run } = formatAdvancedFace(parameter, chords)
+        const sides = state.advancedConfig.faceCounts[parameter]
 
         return {
           id: parameter,
           label: ADVANCED_PARAMETER_LABELS[parameter],
-          value: face,
-          footer: `d${state.advancedConfig.faceCounts[parameter]}, rolled ${state.advancedRoll.values[parameter]}`,
+          face: { main: face },
+          others: parameterDieOthers(parameter, keyCenter, sides, face),
+          footer: `d${sides}, rolled ${state.advancedRoll.values[parameter]}`,
           detail: run,
-          faces: state.advancedConfig.faceCounts[parameter],
+          faces: sides,
+          mark: '',
         }
       })
     }
 
-    return chords.map((chord, index) => ({
-      id: `chord-${index}`,
-      label: `Chord ${index + 1}`,
-      value: formatDieChord(chord),
-      footer: state.mode === 'guided' ? `d${state.guidedFaces[index] ?? 6}` : (RHYTHM_LABELS[chord.rhythmBeats] ?? `${chord.rhythmBeats} beats`),
-      detail: chord.notes.slice(0, 4).join(' '),
-      faces: state.mode === 'guided' ? (state.guidedFaces[index] ?? 6) : faceForNoteCount(chord.notes.length),
-      chordIndex: index,
-    }))
-  }, [chords, state.advancedConfig.faceCounts, state.advancedRoll.values, state.guidedFaces, state.mode])
+    return chords.map((chord, index) => {
+      const sides = state.mode === 'guided' ? (state.guidedFaces[index] ?? 6) : faceForNoteCount(chord.notes.length)
+
+      return {
+        id: chord.id,
+        label: `Chord ${index + 1}`,
+        face: dieFace(chord),
+        others: chordDieOthers(keyCenter, sides, chord.label),
+        footer: state.mode === 'guided' ? `d${sides}` : (RHYTHM_LABELS[chord.rhythmBeats] ?? `${chord.rhythmBeats} beats`),
+        faces: sides,
+        mark: String(index + 1),
+        chordIndex: index,
+      }
+    })
+  }, [chords, keyCenter, state.advancedConfig.faceCounts, state.advancedRoll.values, state.guidedFaces, state.mode])
 
   const copyText = useCallback(
     async (text: string, done: string) => {
@@ -84,21 +90,33 @@ export default function RngChordsApp() {
     void copyText(`${window.location.origin}${window.location.pathname}#${hash}`, 'Copied a link to this progression.')
   }, [copyText, state.progression.chords, state.tempo, state.playbackInstrument, state.rhythmFeel])
 
-  const soundedRoll = useRef(0)
-
-  useEffect(() => {
-    if (rollId === 0 || rollId === soundedRoll.current) {
-      return
-    }
-
-    soundedRoll.current = rollId
-    playDiceRoll(dice.length)
-  }, [rollId, dice.length])
-
   const handleKeyDown = useEffectEvent((event: KeyboardEvent) => {
     const target = event.target as HTMLElement | null
 
-    if (target && (INTERACTIVE_TAGS.has(target.tagName) || target.isContentEditable)) {
+    if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) {
+      return
+    }
+
+    if ((event.metaKey || event.ctrlKey) && !event.shiftKey && event.key.toLowerCase() === 'z') {
+      if (canUndo) {
+        event.preventDefault()
+        actions.undo()
+      }
+
+      return
+    }
+
+    if (event.metaKey || event.ctrlKey || event.altKey) {
+      return
+    }
+
+    if (event.key.toLowerCase() === 'r') {
+      event.preventDefault()
+      actions.roll()
+      return
+    }
+
+    if (target && INTERACTIVE_TAGS.has(target.tagName)) {
       return
     }
 
@@ -138,103 +156,98 @@ export default function RngChordsApp() {
         <Header appearance={appearance} onAppearanceChange={updateAppearance} />
 
         <main id="main-content" tabIndex={-1}>
-          <section className="intro">
-            <h1>Roll the dice, get a chord progression.</h1>
-          </section>
-
-          <ModeTabs mode={state.mode} onChange={actions.setMode} />
+          <h1 className="intro">Roll the dice, get a chord progression.</h1>
 
           <div className="workbench" style={{ '--beat-ms': `${Math.round(60000 / state.tempo)}ms` } as CSSProperties}>
-            <div className="stage">
-              <section className="tray" aria-label="Dice">
-                <div className="tray__bar">
-                  <ul className="stats">
-                    <li className="stats__key">
-                      <button
-                        type="button"
-                        className="step-btn"
-                        onClick={() => actions.transpose(-1)}
-                        disabled={chords.length === 0}
-                        aria-label="Down a half step"
-                      >
-                        <span aria-hidden="true">−</span>
-                      </button>
-                      <span>Key of {state.progression.keyCenter}</span>
-                      <button
-                        type="button"
-                        className="step-btn"
-                        onClick={() => actions.transpose(1)}
-                        disabled={chords.length === 0}
-                        aria-label="Up a half step"
-                      >
-                        <span aria-hidden="true">+</span>
-                      </button>
-                    </li>
-                    <li>{chords.length} {chords.length === 1 ? 'chord' : 'chords'}</li>
-                    <li>{duration}</li>
-                    <li>{formatSource(state.progression.source)}</li>
-                  </ul>
-                  <div className="tray__actions">
-                    <button type="button" className="btn btn--primary" onClick={actions.roll}>
-                      {rollId > 0 ? 'Roll again' : 'Roll the dice'}
-                    </button>
-                    <button type="button" className="btn btn--tray" onClick={actions.surprise}>
-                      Surprise me
-                    </button>
-                  </div>
-                </div>
-                <DiceTray
-                  dice={dice}
-                  rollId={rollId}
-                  flip={flip}
-                  playingIndex={player.highlightedIndex}
-                  keptSlots={state.keptChordSlots}
-                  onPress={player.preview}
-                />
-                {status ? (
-                  <p className="tray__status" role="status">
-                    {status}
-                  </p>
-                ) : null}
-                <p className="sr-only" role="status">
-                  {chords.map((chord) => chord.label).join(', ')}
-                </p>
-              </section>
-
-              <Transport
-                playing={player.playing}
-                loop={state.loopEnabled}
-                tempo={state.tempo}
-                instrument={state.playbackInstrument}
-                feel={state.rhythmFeel}
-                exporting={player.exporting}
-                onPlay={player.start}
-                onStop={player.stop}
-                onExport={player.exportMidi}
-                actions={actions}
+            <section className="tray" aria-label="Dice">
+              <DiceTable
+                dice={dice}
+                roll={roll}
+                flip={flip}
+                playingIndex={player.highlightedIndex}
+                keptSlots={state.keptChordSlots}
+                onPress={player.preview}
               />
-              <Presets presetId={state.activePresetId} actions={actions} />
-              <p className="shortcuts">Space plays or stops. Arrow keys step through the chords.</p>
-            </div>
 
-            <ChordRack
+              <div className="tray__rail">
+                <div className="tray__key">
+                  <button
+                    type="button"
+                    className="step-btn"
+                    onClick={() => actions.transpose(-1)}
+                    disabled={chords.length === 0}
+                    aria-label="Down a half step"
+                  >
+                    <span aria-hidden="true">−</span>
+                  </button>
+                  <p className="tray__key-name">
+                    Key of <ChordSymbol text={keyCenter} />
+                  </p>
+                  <button
+                    type="button"
+                    className="step-btn"
+                    onClick={() => actions.transpose(1)}
+                    disabled={chords.length === 0}
+                    aria-label="Up a half step"
+                  >
+                    <span aria-hidden="true">+</span>
+                  </button>
+                </div>
+                {chords.length > 0 ? (
+                  <ul className="tray__stats">
+                    <li>
+                      {chords.length} {chords.length === 1 ? 'chord' : 'chords'}
+                    </li>
+                    <li>{duration}</li>
+                  </ul>
+                ) : null}
+                <div className="tray__actions">
+                  <button type="button" className="btn btn--tray" onClick={actions.surprise}>
+                    Surprise me
+                  </button>
+                  <button type="button" className="btn btn--roll" onClick={actions.roll} aria-keyshortcuts="R">
+                    {roll.id > 0 ? 'Roll again' : 'Roll the dice'}
+                  </button>
+                </div>
+              </div>
+
+              <p className="tray__status" role="status">
+                {status}
+              </p>
+              <p className="sr-only" role="status">
+                {chords.map((chord) => chord.label).join(', ')}
+              </p>
+            </section>
+
+            <Sheet
               chords={chords}
-              keyCenter={state.progression.keyCenter}
+              keyCenter={keyCenter}
               highlightedIndex={player.highlightedIndex}
               playingIndex={player.playing ? player.activeIndex : null}
               keptSlots={state.keptChordSlots}
               sections={state.sections}
               activeSection={state.activeSection}
+              playing={player.playing}
+              loop={state.loopEnabled}
+              tempo={state.tempo}
+              instrument={state.playbackInstrument}
+              feel={state.rhythmFeel}
+              exporting={player.exporting}
+              canUndo={canUndo}
+              onPlay={player.start}
+              onStop={player.stop}
+              onExport={player.exportMidi}
               onPreview={player.preview}
               onCopy={copyChart}
               onShare={copyLink}
               actions={actions}
             />
 
-            <Controls
+            <Setup
               mode={state.mode}
               complexity={state.complexity}
               keyLock={state.keyLock}
+              presetId={state.activePresetId}
               guidedFaces={state.guidedFaces}
               advancedConfig={state.advancedConfig}
               builder={state.builder}
@@ -242,6 +255,11 @@ export default function RngChordsApp() {
               manualIssues={manualIssues}
               actions={actions}
             />
+
+            <p className="shortcuts">
+              <kbd>Space</kbd> plays or stops. <kbd>R</kbd> rolls. <kbd>←</kbd> <kbd>→</kbd> step through the chords. <kbd>Ctrl</kbd> <kbd>Z</kbd> puts the
+              last chords back.
+            </p>
           </div>
         </main>
       </div>

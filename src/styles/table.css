@@ -1,7 +1,8 @@
 /*
  * The table: the tray the dice land in, the dice themselves, and everything
  * that makes each theme feel like a different object. Colors and material
- * strengths come from the theme tokens in tokens.css.
+ * strengths come from the theme tokens in tokens.css. The dice are drawn in
+ * WebGL (src/lib/dice3d); this file frames them.
  */
 
 /* ---------- Tray ---------- */
@@ -9,19 +10,12 @@
 .tray {
   position: relative;
   isolation: isolate;
-  display: grid;
-  gap: 18px;
-  padding: calc(var(--rail-w) + clamp(14px, 2.5vw, 24px));
-  border-radius: calc(var(--r-panel) + 4px);
+  min-width: 0;
+  padding: var(--rail-w);
+  border-radius: calc(var(--r-panel) + 6px);
   background: var(--tray-texture), var(--tray-bg);
-  box-shadow: inset 0 2px 18px oklch(0 0 0 / 0.35), var(--shadow);
+  box-shadow: var(--shadow);
   color: var(--tray-ink);
-  overflow: hidden;
-}
-
-.tray > * {
-  position: relative;
-  z-index: 1;
 }
 
 /* The rail: a ring cut out of a gradient, so each theme can be brass, gold, a hairline, or steel. */
@@ -29,38 +23,234 @@
   content: '';
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 2;
   padding: var(--rail-w);
   border-radius: inherit;
   background: var(--tray-rail);
   pointer-events: none;
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
 }
 
-.tray::after {
+/* ---------- The felt: where the 3D dice are drawn ---------- */
+
+.felt {
+  position: relative;
+  aspect-ratio: 2.71;
+  border-radius: calc(var(--r-panel) + 6px - var(--rail-w)) calc(var(--r-panel) + 6px - var(--rail-w)) 0 0;
+  background: var(--table);
+  overflow: hidden;
+}
+
+@media (max-width: 600px) {
+  .felt {
+    aspect-ratio: 1.001;
+  }
+}
+
+/* The cloth sits below the rail, so the rail casts a shadow onto it. */
+.felt::after {
   content: '';
   position: absolute;
-  z-index: 0;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 5px 16px oklch(0 0 0 / 0.5),
+    inset 0 -1px 0 oklch(0 0 0 / 0.5);
   pointer-events: none;
 }
 
-.stats__key {
+.felt__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  touch-action: pan-y;
+  transition: opacity 0.35s;
+}
+
+.felt[data-ready] .felt__canvas {
+  opacity: 1;
+}
+
+.felt__empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  color: var(--tray-ink-2);
+  text-align: center;
+}
+
+.felt__tags {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: none;
+}
+
+/* A caption under each die once it has come to rest. */
+.die-tag {
+  position: absolute;
+  visibility: hidden;
+  opacity: 0;
+  transform: translate(-50%, 2px);
+  transition:
+    opacity 0.22s,
+    transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.2),
+    visibility 0s 0.22s;
+}
+
+.die-tag[data-shown] {
+  visibility: visible;
+  opacity: 1;
+  transform: translate(-50%, 0);
+  transition:
+    opacity 0.22s,
+    transform 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+
+.die-tag__hit {
+  display: grid;
+  justify-items: center;
+  margin: 0;
+  padding: 1px 8px 2px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--tray-ink);
+  font: inherit;
+  line-height: 1.2;
+  text-align: center;
+  text-shadow: 0 1px 3px oklch(0 0 0 / 0.75);
+  white-space: nowrap;
+  pointer-events: auto;
+}
+
+button.die-tag__hit:hover {
+  background: oklch(0 0 0 / 0.28);
+}
+
+.die-tag__name {
+  font-family: var(--font-display);
+  font-size: clamp(0.9rem, 1.5vw, 1.1rem);
+  font-weight: 650;
+}
+
+.die-tag__detail {
+  color: var(--tray-ink-2);
+  font-size: 0.72rem;
+  word-spacing: 0.2em;
+}
+
+.die-tag__hit:not(button) .die-tag__name {
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.die-tag[data-playing] .die-tag__name,
+.die-tag[data-kept] .die-tag__name {
+  color: var(--accent-solid);
+}
+
+html[data-theme='glass'] .die-tag__hit {
+  font-family: var(--die-font);
+}
+
+html[data-theme='glass'] .die-tag__name {
+  font-family: var(--die-font);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .die-tag,
+  .die-tag[data-shown],
+  .felt__canvas {
+    transition: none;
+  }
+}
+
+/* ---------- The rail under the felt: key, count, and the roll ---------- */
+
+.tray__rail {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 18px;
+  padding: 12px 14px 12px 16px;
+  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.07);
+}
+
+.tray__key {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.tray__key-name {
+  min-width: 5.6em;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 650;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.tray__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--tray-ink-2);
+  font-size: 0.86rem;
+  font-weight: 500;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.tray__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.tray__status {
+  position: relative;
+  z-index: 1;
+  min-height: 1.5em;
+  margin-top: -4px;
+  padding: 0 16px 10px;
+  color: var(--tray-ink-2);
+  font-size: 0.86rem;
+}
+
+.tray__status:empty {
+  display: none;
 }
 
 .step-btn {
   display: grid;
   flex: none;
   place-items: center;
-  width: 26px;
-  height: 26px;
-  border: 1px solid oklch(1 0 0 / 0.28);
+  width: 28px;
+  height: 28px;
+  border: 1px solid oklch(1 0 0 / 0.26);
   border-radius: 50%;
-  background: oklch(1 0 0 / 0.1);
+  background: oklch(1 0 0 / 0.08);
   color: var(--tray-ink);
   font-family: var(--font-body);
   font-size: 1rem;
@@ -68,7 +258,7 @@
 }
 
 .step-btn:hover:not(:disabled) {
-  background: oklch(1 0 0 / 0.22);
+  background: oklch(1 0 0 / 0.2);
 }
 
 .step-btn:disabled {
@@ -76,94 +266,158 @@
   cursor: not-allowed;
 }
 
-/* ---------- Felt: green baize, brass rail, stitching ---------- */
-
-html[data-theme='felt'] .tray::after {
-  inset: calc(var(--rail-w) + 6px);
-  border: 1.5px dashed oklch(0.92 0.06 90 / 0.36);
-  border-radius: calc(var(--r-panel) - 2px);
+.btn--tray {
+  border-color: oklch(1 0 0 / 0.22);
+  background: oklch(1 0 0 / 0.08);
+  color: var(--tray-ink);
 }
 
-/* ---------- Velvet: garnet cloth, gold leaf, double rule ---------- */
+.btn--tray:hover:not(:disabled) {
+  background: oklch(1 0 0 / 0.17);
+}
+
+/* The one button the page is about. It sits proud of the rail and goes down when pressed. */
+.btn--roll {
+  min-height: 44px;
+  padding: 0 24px;
+  border-color: transparent;
+  background: var(--accent-solid);
+  color: var(--on-accent);
+  font-size: 0.98rem;
+  font-weight: 700;
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.45),
+    0 3px 0 color-mix(in oklch, var(--accent-solid) 55%, black),
+    0 6px 12px oklch(0 0 0 / 0.35);
+  transform: translateY(-1px);
+}
+
+.btn--roll:hover:not(:disabled) {
+  background: var(--accent-solid);
+  filter: brightness(1.07);
+}
+
+.btn--roll:active:not(:disabled) {
+  box-shadow:
+    inset 0 1px 0 oklch(1 0 0 / 0.3),
+    0 0 0 color-mix(in oklch, var(--accent-solid) 55%, black),
+    0 1px 3px oklch(0 0 0 / 0.4);
+  transform: translateY(2px);
+}
+
+/* ---------- Theme details on the tray ---------- */
 
 html[data-theme='velvet'] {
   --tray-texture:
     repeating-linear-gradient(45deg, oklch(1 0 0 / 0.028) 0 2px, transparent 2px 5px),
-    repeating-linear-gradient(-45deg, oklch(0 0 0 / 0.1) 0 2px, transparent 2px 5px),
-    radial-gradient(70% 90% at 50% 0%, oklch(0.62 0.13 35 / 0.38), transparent 70%);
+    repeating-linear-gradient(-45deg, oklch(0 0 0 / 0.1) 0 2px, transparent 2px 5px);
 }
 
-html[data-theme='velvet'] .tray::after {
-  inset: calc(var(--rail-w) + 7px);
-  border: 1px solid oklch(0.8 0.1 85 / 0.55);
-  border-radius: calc(var(--r-panel) - 4px);
-  outline: 1px solid oklch(0.8 0.1 85 / 0.32);
-  outline-offset: -5px;
-  background:
-    radial-gradient(circle at 0 0, oklch(0.85 0.1 88) 0 3px, transparent 3.5px) 4px 4px / 14px 14px no-repeat,
-    radial-gradient(circle at 100% 0, oklch(0.85 0.1 88) 0 3px, transparent 3.5px) calc(100% - 4px) 4px / 14px 14px no-repeat,
-    radial-gradient(circle at 0 100%, oklch(0.85 0.1 88) 0 3px, transparent 3.5px) 4px calc(100% - 4px) / 14px 14px no-repeat,
-    radial-gradient(circle at 100% 100%, oklch(0.85 0.1 88) 0 3px, transparent 3.5px) calc(100% - 4px) calc(100% - 4px) / 14px 14px no-repeat;
-}
-
-html[data-theme='velvet'] .stats li:first-child {
+html[data-theme='velvet'] .tray__key-name {
   background: linear-gradient(100deg, oklch(0.94 0.09 90), oklch(0.78 0.11 80) 45%, oklch(0.95 0.08 92));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-/* ---------- Glass: blueprint paper, registration marks ---------- */
-
 html[data-theme='glass'] {
   --tray-texture:
-    repeating-linear-gradient(0deg, oklch(0.9 0.08 215 / 0.12) 0 1px, transparent 1px 80px),
-    repeating-linear-gradient(90deg, oklch(0.9 0.08 215 / 0.12) 0 1px, transparent 1px 80px),
     repeating-linear-gradient(0deg, oklch(0.9 0.08 215 / 0.05) 0 1px, transparent 1px 16px),
     repeating-linear-gradient(90deg, oklch(0.9 0.08 215 / 0.05) 0 1px, transparent 1px 16px);
 }
 
-html[data-theme='glass'] .tray::after {
-  --mark: oklch(0.9 0.09 215 / 0.8);
-  inset: 10px;
-  background:
-    linear-gradient(var(--mark), var(--mark)) 0 0 / 16px 1.5px no-repeat,
-    linear-gradient(var(--mark), var(--mark)) 0 0 / 1.5px 16px no-repeat,
-    linear-gradient(var(--mark), var(--mark)) 100% 0 / 16px 1.5px no-repeat,
-    linear-gradient(var(--mark), var(--mark)) 100% 0 / 1.5px 16px no-repeat,
-    linear-gradient(var(--mark), var(--mark)) 0 100% / 16px 1.5px no-repeat,
-    linear-gradient(var(--mark), var(--mark)) 0 100% / 1.5px 16px no-repeat,
-    linear-gradient(var(--mark), var(--mark)) 100% 100% / 16px 1.5px no-repeat,
-    linear-gradient(var(--mark), var(--mark)) 100% 100% / 1.5px 16px no-repeat;
-}
-
-html[data-theme='glass'] .stats,
-html[data-theme='glass'] .tray__status {
+html[data-theme='glass'] .tray__stats,
+html[data-theme='glass'] .tray__status,
+html[data-theme='glass'] .tray__key-name {
   font-family: var(--die-font);
 }
 
-/* ---------- Pads: hardware plate, screws, LCD ---------- */
+html[data-theme='glass'] .tray__key-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
 
 html[data-theme='pads'] {
-  --tray-texture:
-    radial-gradient(oklch(1 0 0 / 0.07) 1px, transparent 1.6px) 0 0 / 14px 14px,
-    repeating-linear-gradient(90deg, oklch(1 0 0 / 0.02) 0 1px, transparent 1px 3px);
+  --tray-texture: repeating-linear-gradient(90deg, oklch(1 0 0 / 0.02) 0 1px, transparent 1px 3px);
 }
 
-html[data-theme='pads'] .tray::after {
-  --screw: radial-gradient(circle, oklch(0.62 0.005 70) 0 1.5px, oklch(0.3 0.005 70) 2px 4px, oklch(0.1 0 0 / 0.6) 4.5px, transparent 5.5px);
-  inset: 8px;
-  background:
-    var(--screw) 0 0 / 12px 12px no-repeat,
-    var(--screw) 100% 0 / 12px 12px no-repeat,
-    var(--screw) 0 100% / 12px 12px no-repeat,
-    var(--screw) 100% 100% / 12px 12px no-repeat;
+html[data-theme='pads'] .btn,
+html[data-theme='pads'] .chip {
+  border-width: 2px;
+  box-shadow: 0 3px 0 var(--line);
 }
 
-/* ---------- Dice ---------- */
+html[data-theme='pads'] .btn:active:not(:disabled) {
+  box-shadow: 0 1px 0 var(--line);
+  transform: translateY(2px);
+}
+
+html[data-theme='pads'] .btn--quiet {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+html[data-theme='pads'] .btn--roll {
+  box-shadow: 0 4px 0 oklch(0.1 0.005 70);
+}
+
+html[data-theme='pads'] .btn--roll:active:not(:disabled) {
+  box-shadow: 0 1px 0 oklch(0.1 0.005 70);
+}
+
+html[data-theme='glass'] .cell__notes,
+html[data-theme='glass'] .cell__meta {
+  font-family: var(--die-font);
+  font-size: 0.76rem;
+}
+
+/* ---------- Keys on a chord ---------- */
+
+.piano {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+.piano__white {
+  fill: oklch(0.985 0.004 90);
+  stroke: oklch(0.5 0.01 80);
+  stroke-width: 0.45;
+}
+
+.piano__black {
+  fill: oklch(0.22 0.01 60);
+}
+
+.piano__white[data-lit] {
+  fill: var(--accent-solid);
+}
+
+.piano__black[data-lit] {
+  fill: color-mix(in oklch, var(--accent-solid) 70%, black);
+  stroke: var(--accent-solid);
+  stroke-width: 0.5;
+}
+
+.piano [data-root] {
+  stroke: var(--ink);
+  stroke-width: 1;
+}
+
+/* ---------- Texture ---------- */
+
+body,
+.panel {
+  background-image: var(--grain);
+}
+
+/* ---------- Flat dice, shown when the browser has no WebGL ---------- */
 
 .dice {
+  position: relative;
+  z-index: 1;
   display: flex;
+  padding-inline: 12px;
   flex-wrap: wrap;
   justify-content: center;
   gap: clamp(12px, 2.4vw, 24px) clamp(8px, 1.6vw, 18px);
@@ -437,101 +691,4 @@ html[data-theme='pads'] .die__cap {
   .die[data-playing] .die__rim {
     stroke: var(--accent-solid);
   }
-}
-
-/* ---------- Chord cards ---------- */
-
-.chord-card__head {
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
-}
-
-.chord-card__numeral {
-  padding: 0 9px;
-  border: 1px solid var(--accent);
-  border-radius: 999px;
-  color: var(--accent);
-  font-family: var(--font-display);
-  font-size: 1.05rem;
-  font-weight: 700;
-  line-height: 1.5;
-}
-
-.piano {
-  display: block;
-  width: 100%;
-  max-height: 58px;
-}
-
-.piano__white {
-  fill: oklch(0.97 0.006 90);
-  stroke: oklch(0.62 0.01 80);
-  stroke-width: 0.3;
-}
-
-.piano__black {
-  fill: oklch(0.22 0.01 60);
-}
-
-.piano__white[data-lit] {
-  fill: var(--accent-solid);
-}
-
-.piano__black[data-lit] {
-  fill: color-mix(in oklch, var(--accent-solid) 70%, black);
-  stroke: var(--accent-solid);
-  stroke-width: 0.5;
-}
-
-.piano [data-root] {
-  stroke: var(--ink);
-  stroke-width: 1;
-}
-
-.transport__tap {
-  align-self: flex-end;
-}
-
-/* ---------- Texture and a different object per theme ---------- */
-
-body {
-  background-image: var(--grain);
-}
-
-.panel,
-.chord-card {
-  background-image: var(--grain);
-}
-
-html[data-theme='velvet'] .chord-card {
-  outline: 1px solid color-mix(in oklch, var(--accent) 45%, transparent);
-  outline-offset: -6px;
-}
-
-html[data-theme='glass'] .chord-card {
-  border-radius: 4px;
-}
-
-html[data-theme='glass'] .notes li,
-html[data-theme='glass'] .chord-card__meta {
-  font-family: var(--die-font);
-}
-
-html[data-theme='pads'] .chord-card {
-  border-width: 2px;
-  box-shadow: 0 4px 0 var(--line);
-}
-
-html[data-theme='pads'] .chord-card[data-playing] {
-  box-shadow: 0 4px 0 var(--accent);
-}
-
-html[data-theme='pads'] .btn,
-html[data-theme='pads'] .chip {
-  border-width: 2px;
-  box-shadow: 0 3px 0 var(--line);
-}
-
-html[data-theme='pads'] .btn:active:not(:disabled) {
-  box-shadow: 0 1px 0 var(--line);
-  transform: translateY(2px);
 }

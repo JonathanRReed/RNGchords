@@ -25,9 +25,10 @@ import {
 } from './constants'
 import { createInitialState, loadSession, saveSession } from './session'
 import { decodeShare } from './share'
-import type { Mode, SectionId, WorkState } from './types'
+import type { Mode, RollEvent, SectionId, WorkState } from './types'
 
 const SAVE_DELAY_MS = 400
+const MAX_UNDO = 40
 
 type PresetOverrides = Partial<Pick<WorkState, 'complexity' | 'tempo' | 'playbackInstrument'>>
 
@@ -43,8 +44,11 @@ export function useWorkstation() {
   const [state, setState] = useState<WorkState>(createInitialState)
   const [status, setStatus] = useState(DEFAULT_STATUS)
   const [manualIssues, setManualIssues] = useState<string[]>([])
-  const [rollId, setRollId] = useState(0)
+  const [roll, setRoll] = useState<RollEvent>({ id: 0, slots: null })
   const [restored, setRestored] = useState(false)
+
+  const [canUndo, setCanUndo] = useState(false)
+  const history = useRef<WorkState[]>([])
 
   const stateRef = useRef(state)
   stateRef.current = state
@@ -74,7 +78,7 @@ export function useWorkstation() {
         playbackInstrument: shared.instrument ?? current.playbackInstrument,
         rhythmFeel: shared.feel ?? current.rhythmFeel,
       }))
-      setRollId((id) => id + 1)
+      setRoll((current) => ({ id: current.id + 1, slots: null }))
       setStatus('Opened a shared progression.')
       window.history.replaceState(null, '', window.location.pathname + window.location.search)
     }
@@ -113,19 +117,30 @@ export function useWorkstation() {
   }, [state, restored])
 
   const actions = useMemo(() => {
+    const throwDice = (slots: number[] | null) => setRoll((current) => ({ id: current.id + 1, slots }))
+
+    /** Call before anything that replaces the chords, so it can be undone. */
+    const remember = () => {
+      history.current = [...history.current.slice(-(MAX_UNDO - 1)), stateRef.current]
+      setCanUndo(true)
+    }
+
     const patch = (changes: Partial<WorkState>) => setState((current) => ({ ...current, ...changes }))
 
     const commit = (progression: ProgressionResult, mode: Mode, extra: Partial<WorkState> = {}) => {
       const { keyLock } = stateRef.current
       const placed = keyLock && mode !== 'manual' ? transposeToKey(progression, keyLock) : progression
 
+      remember()
+
       setState((current) => ({ ...current, ...extra, progression: placed, mode, keptChordSlots: [] }))
       setManualIssues([])
-      setRollId((id) => id + 1)
+      throwDice(null)
       setStatus('')
     }
 
-    const editChords = (chords: ChordDescriptor[], explanation?: string[]) => {
+    const editChords = (chords: ChordDescriptor[], slots: number[], explanation?: string[]) => {
+      remember()
       setState((current) => ({
         ...current,
         progression: {
@@ -135,7 +150,7 @@ export function useWorkstation() {
           rollSummary: summarize(chords, 'Chord'),
         },
       }))
-      setRollId((id) => id + 1)
+      throwDice(slots)
       setStatus('')
     }
 
@@ -177,7 +192,11 @@ export function useWorkstation() {
       const chords = progression.chords.map((chord, index) =>
         shouldReroll(index) ? rerollChordFromKey({ chord, keyCenter: progression.keyCenter, complexity, index }) : chord,
       )
-      editChords(chords, [`New pass around ${progression.keyCenter} with ${COMPLEXITY_COPY[complexity].label.toLowerCase()} harmony.`])
+      editChords(
+        chords,
+        chords.flatMap((_, index) => (shouldReroll(index) ? [index] : [])),
+        [`New pass around ${progression.keyCenter} with ${COMPLEXITY_COPY[complexity].label.toLowerCase()} harmony.`],
+      )
     }
 
     return {
@@ -194,8 +213,9 @@ export function useWorkstation() {
           return
         }
 
+        remember()
         patch({ keyLock, progression: transposeToKey(progression, keyLock) })
-        setRollId((id) => id + 1)
+        throwDice(null)
       },
       transpose: (semitones: number) => {
         const { progression } = stateRef.current
@@ -205,6 +225,7 @@ export function useWorkstation() {
         }
 
         const next = transposeProgression(progression, semitones)
+        remember()
         patch({ progression: next, keyLock: stateRef.current.keyLock ? next.keyCenter : null })
       },
       setManualInput: (manualInput: string) => patch({ manualInput }),
@@ -347,6 +368,7 @@ export function useWorkstation() {
       },
 
       removeChord: (index: number) => {
+        remember()
         setState((current) => {
           const chords = current.progression.chords.filter((_, chordIndex) => chordIndex !== index)
 
@@ -365,6 +387,11 @@ export function useWorkstation() {
       },
 
       clear: () => {
+        if (stateRef.current.progression.chords.length === 0) {
+          return
+        }
+
+        remember()
         setState((current) => ({ ...current, progression: { ...current.progression, chords: [], rollSummary: [] }, keptChordSlots: [] }))
         setStatus('')
       },
@@ -403,6 +430,7 @@ export function useWorkstation() {
           return
         }
 
+        remember()
         setState((current) => ({
           ...current,
           ...snapshot,
@@ -411,8 +439,33 @@ export function useWorkstation() {
           activeSection: sectionId,
           keptChordSlots: [],
         }))
-        setRollId((id) => id + 1)
+        throwDice(null)
         setStatus(`Loaded ${sectionId}.`)
+      },
+
+      /** Puts back the chords from before the last roll, reroll, transpose, removal, or clear. */
+      undo: () => {
+        const previous = history.current.at(-1)
+
+        if (!previous) {
+          return
+        }
+
+        history.current = history.current.slice(0, -1)
+        setCanUndo(history.current.length > 0)
+        setState((current) => ({
+          ...current,
+          progression: previous.progression,
+          keptChordSlots: previous.keptChordSlots,
+          mode: previous.mode,
+          advancedRoll: previous.advancedRoll,
+          guidedFaces: previous.guidedFaces,
+          advancedConfig: previous.advancedConfig,
+          keyLock: previous.keyLock,
+        }))
+        setManualIssues([])
+        setRoll((current) => ({ id: current.id + 1, slots: null, quiet: true }))
+        setStatus('Put the last chords back.')
       },
 
       notify: setStatus,
@@ -421,7 +474,7 @@ export function useWorkstation() {
 
   const display = useMemo(() => applyRhythmFeel(state.progression, state.rhythmFeel), [state.progression, state.rhythmFeel])
 
-  return { state, display, status, manualIssues, rollId, actions }
+  return { state, display, status, manualIssues, roll, canUndo, actions }
 }
 
 export type WorkstationActions = ReturnType<typeof useWorkstation>['actions']

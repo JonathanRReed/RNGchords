@@ -16,11 +16,17 @@ describe('appearance settings', () => {
   })
 
   it('keeps valid choices and drops unknown ones', () => {
-    const parsed = parseAppearance(JSON.stringify({ colorMode: 'dark', theme: 'pads', font: 'dyslexic', flip: 'coin', sound: false }))
-    expect(parsed).toEqual({ colorMode: 'dark', theme: 'pads', font: 'dyslexic', flip: 'coin', sound: false })
+    const parsed = parseAppearance(JSON.stringify({ colorMode: 'dark', theme: 'pads', font: 'dyslexic', flip: 'drop', sound: false }))
+    expect(parsed).toEqual({ colorMode: 'dark', theme: 'pads', font: 'dyslexic', flip: 'drop', sound: false })
 
     const bad = parseAppearance(JSON.stringify({ colorMode: 'neon', theme: 'plaid', font: 'comic', flip: 'spin' }))
     expect(bad).toEqual(DEFAULT_APPEARANCE)
+  })
+
+  it('reads roll motions saved under their old names as a throw', () => {
+    for (const old of ['tumble', 'coin', 'card', 'reel']) {
+      expect(parseAppearance(JSON.stringify({ flip: old })).flip).toBe('throw')
+    }
   })
 
   it('maps the old table colors to the new themes', () => {
@@ -42,7 +48,7 @@ describe('roll animations', () => {
   })
 
   it('only animates transform and opacity', () => {
-    const animation = getDieAnimation('tumble', 1)
+    const animation = getDieAnimation('throw', 1)
     expect(animation).not.toBeNull()
 
     for (const frame of animation?.keyframes ?? []) {
@@ -144,15 +150,15 @@ describe('advanced die faces', () => {
   ]
 
   it('writes each die in chord notation, led by the first chord', () => {
-    expect(formatAdvancedFace('roots', chords)).toEqual({ face: 'G', run: 'G · B' })
-    expect(formatAdvancedFace('qualities', chords)).toEqual({ face: 'maj', run: 'maj · m' })
-    expect(formatAdvancedFace('extensions', chords)).toEqual({ face: 'triad', run: 'triad · 7♭9' })
-    expect(formatAdvancedFace('rhythm', chords)).toEqual({ face: '½', run: '½ · 2' })
+    expect(formatAdvancedFace('roots', chords)).toEqual({ face: 'G', run: 'G B' })
+    expect(formatAdvancedFace('qualities', chords)).toEqual({ face: 'maj', run: 'maj m' })
+    expect(formatAdvancedFace('extensions', chords)).toEqual({ face: 'triad', run: 'triad 7b9' })
+    expect(formatAdvancedFace('rhythm', chords)).toEqual({ face: '½', run: '½ 2' })
   })
 
   it('shows the bass note for inverted chords', () => {
     const { face, run } = formatAdvancedFace('inversions', chords)
     expect(face).toBe('root')
-    expect(run).toBe('– · /D')
+    expect(run).toBe('– /D')
   })
 })

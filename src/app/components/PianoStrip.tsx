@@ -7,6 +7,7 @@ const BLACK_PITCHES = new Set([1, 3, 6, 8, 10])
 const WHITE_WIDTH = 10
 const BLACK_WIDTH = 6.2
 const HEIGHT = 34
+const KEY_EM = 0.6
 
 /** A few octaves of keys with the chord lit up, so a pianist sees the shape at a glance. */
 export function PianoStrip({ midi, rootPitchClass }: PianoStripProps) {
@@ -29,7 +30,15 @@ export function PianoStrip({ midi, rootPitchClass }: PianoStripProps) {
   }
 
   return (
-    <svg className="piano" viewBox={`0 0 ${whites.length * WHITE_WIDTH} ${HEIGHT}`} role="img" aria-label="Keys in this chord" preserveAspectRatio="xMidYMid meet">
+    <svg
+      className="piano"
+      viewBox={`0 0 ${whites.length * WHITE_WIDTH} ${HEIGHT}`}
+      // Every strip draws its keys the same size, however many octaves the chord spans.
+      style={{ width: `${whites.length * KEY_EM}em` }}
+      role="img"
+      aria-label="Keys in this chord"
+      preserveAspectRatio="xMinYMid meet"
+    >
       {whites.map((note, index) => (
         <rect
           key={note}

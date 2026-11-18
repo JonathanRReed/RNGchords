@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react'
-import { FLIP_OPTIONS, isFlipStyle } from '../../lib/dice/flips'
+import { FLIP_OPTIONS, parseFlip } from '../../lib/dice/flips'
 import { COLOR_MODES, TABLE_THEMES, TEXT_FONTS, type Appearance } from '../appearance'
 import { SlidersIcon } from './icons'
 import { Segmented } from './Segmented'
@@ -58,7 +58,7 @@ export function AppearanceMenu({ appearance, onChange }: AppearanceMenuProps) {
         onClick={() => setOpen((current) => !current)}
       >
         <SlidersIcon />
-        <span>Appearance</span>
+        <span className="appearance__label">Appearance</span>
       </button>
 
       {open ? (
@@ -117,7 +117,7 @@ export function AppearanceMenu({ appearance, onChange }: AppearanceMenuProps) {
               <span>Roll motion</span>
               <select
                 value={appearance.flip ?? 'auto'}
-                onChange={(event) => onChange({ flip: isFlipStyle(event.target.value) ? event.target.value : null })}
+                onChange={(event) => onChange({ flip: parseFlip(event.target.value) })}
               >
                 <option value="auto">Automatic</option>
                 {FLIP_OPTIONS.map((option) => (
@@ -129,7 +129,7 @@ export function AppearanceMenu({ appearance, onChange }: AppearanceMenuProps) {
               <small>
                 {appearance.flip
                   ? FLIP_OPTIONS.find((option) => option.id === appearance.flip)?.detail
-                  : 'Tumble, or no motion if your system asks for reduced motion.'}
+                  : 'Thrown, or set down without motion if your system asks for reduced motion.'}
               </small>
             </label>
             <label className="check">

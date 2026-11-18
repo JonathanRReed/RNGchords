@@ -14,24 +14,27 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@fontsource-variable/manrope": "^5.3.0",
+    "@fontsource-variable/besley": "^5.3.0",
+    "@fontsource-variable/libre-franklin": "^5.3.0",
     "@fontsource/atkinson-hyperlegible": "^5.3.0",
-    "@fontsource/cormorant-garamond": "^5.3.0",
     "@fontsource/opendyslexic": "^5.3.0",
     "@tonejs/midi": "^2.0.28",
-    "astro": "7.2.4",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
+    "astro": "^7.4.13",
+    "cannon-es": "^0.20.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "three": "^0.187.0",
     "tone": "^15.1.22"
   },
   "devDependencies": {
-    "@astrojs/check": "0.9.10",
-    "@astrojs/react": "6.0.4",
-    "@types/node": "^25.9.5",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.4",
-    "typescript": "^6.0.3",
-    "vitest": "^4.1.11"
+    "@astrojs/check": "^0.9.12",
+    "@astrojs/react": "^7.1.9",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/three": "^0.187.0",
+    "typescript": "^6",
+    "vitest": "^5.1.1"
   },
   "overrides": {
     "smol-toml": ">=1.6.1",

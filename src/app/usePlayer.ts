@@ -31,8 +31,20 @@ export function usePlayer({ source, display, tempo, instrument, loop, notify }: 
   }, [source, reset])
 
   useEffect(() => {
-    preloadPlayback()
-    return () => stopPlayback()
+    // The audio library is big and nothing needs it until a chord is played, so it waits for a quiet moment
+    // and lets the dice load first. Hovering or focusing Play fetches it sooner.
+    const idle = typeof window.requestIdleCallback === 'function'
+    const handle = idle ? window.requestIdleCallback(preloadPlayback, { timeout: 4000 }) : window.setTimeout(preloadPlayback, 2000)
+
+    return () => {
+      if (idle) {
+        window.cancelIdleCallback(handle)
+      } else {
+        window.clearTimeout(handle)
+      }
+
+      stopPlayback()
+    }
   }, [])
 
   const start = useCallback(async () => {

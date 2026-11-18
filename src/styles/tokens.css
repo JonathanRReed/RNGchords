@@ -11,9 +11,9 @@
  */
 
 :root {
-  --font-body-default: 'Manrope Variable', 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-body-default: 'Libre Franklin Variable', 'Libre Franklin', 'Franklin Gothic Medium', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-body: var(--font-body-default);
-  --font-display: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --font-display: 'Besley Variable', 'Besley', 'Clarendon', Georgia, serif;
 
   --hue: 165;
   --accent-h: 82;
@@ -90,7 +90,10 @@ html[data-theme='felt'] {
   --tray-bg:
     radial-gradient(90% 120% at 50% 0%, oklch(0.42 0.085 165 / 0.85), transparent 70%),
     linear-gradient(oklch(0.33 0.07 165), oklch(0.23 0.05 170));
-  --tray-rim: oklch(0.72 0.1 82 / 0.5);
+  --table: oklch(0.37 0.078 165);
+  --table-deep: oklch(0.19 0.045 170);
+  --table-mark: oklch(0.9 0.08 92);
+  --die-edge: oklch(0.2 0.03 165);
   --tray-ink: oklch(0.96 0.02 165);
   --tray-ink-2: oklch(0.83 0.04 165);
 
@@ -132,7 +135,10 @@ html[data-theme='velvet'] {
 
   --tray-texture: none;
   --tray-bg: linear-gradient(115deg, oklch(0.3 0.1 18), oklch(0.23 0.08 18) 40%, oklch(0.29 0.1 18) 56%, oklch(0.2 0.07 18));
-  --tray-rim: oklch(0.75 0.1 78 / 0.55);
+  --table: oklch(0.31 0.11 18);
+  --table-deep: oklch(0.15 0.06 18);
+  --table-mark: oklch(0.85 0.1 85);
+  --die-edge: oklch(0.6 0.07 75);
   --tray-ink: oklch(0.96 0.02 40);
   --tray-ink-2: oklch(0.84 0.04 30);
 
@@ -175,7 +181,10 @@ html[data-theme='glass'] {
     repeating-linear-gradient(0deg, oklch(1 0 0 / 0.05) 0 1px, transparent 1px 32px),
     repeating-linear-gradient(90deg, oklch(1 0 0 / 0.05) 0 1px, transparent 1px 32px);
   --tray-bg: linear-gradient(oklch(0.22 0.05 258), oklch(0.15 0.04 262));
-  --tray-rim: oklch(0.8 0.08 215 / 0.4);
+  --table: oklch(0.21 0.052 258);
+  --table-deep: oklch(0.11 0.035 262);
+  --table-mark: oklch(0.9 0.08 215);
+  --die-edge: oklch(0.95 0.07 215);
   --tray-ink: oklch(0.96 0.015 250);
   --tray-ink-2: oklch(0.82 0.03 250);
 
@@ -217,7 +226,10 @@ html[data-theme='pads'] {
 
   --tray-texture: radial-gradient(oklch(1 0 0 / 0.07) 1px, transparent 1.6px) 0 0 / 14px 14px;
   --tray-bg: oklch(0.23 0.008 70);
-  --tray-rim: oklch(0.12 0.005 70);
+  --table: oklch(0.28 0.008 70);
+  --table-deep: oklch(0.17 0.006 70);
+  --table-mark: oklch(0.85 0.01 70);
+  --die-edge: oklch(0.12 0.005 70);
   --tray-ink: oklch(0.96 0.01 70);
   --tray-ink-2: oklch(0.8 0.015 70);
 

@@ -1,11 +1,12 @@
 ---
+import DiceScale from "../components/DiceScale.astro";
 import InfoPage from "../layouts/InfoPage.astro";
 
 const title = "About RNG Chords | Jonathan R. Reed";
 const description =
 	"RNG Chords is a free chord progression generator by Jonathan R. Reed. Dice pick the chords, and you decide which ones stay.";
 const published = "2026-04-21";
-const modified = "2026-10-22";
+const modified = "2026-11-18";
 const author = {
 	"@type": "Person",
 	name: "Jonathan R. Reed",
@@ -54,7 +55,11 @@ const structuredData = {
 	</p>
 
 	<h2>How the chords are picked</h2>
-	<p>Every roll starts with dice. There are three ways to use them.</p>
+	<p>
+		Every roll starts with dice. They are thrown onto the table, bounce, and
+		settle, and the face each one lands on is its chord. There are three ways
+		to use them.
+	</p>
 	<ul>
 		<li>
 			<strong>Easy</strong> turns each die into one chord. A die's size, from d4
@@ -69,6 +74,8 @@ const structuredData = {
 			<code>Cmaj9, Am11, D7b9, G13</code> or build a chord from parts.
 		</li>
 	</ul>
+
+	<DiceScale />
 
 	<h3>The key</h3>
 	<p>
@@ -97,7 +104,9 @@ const structuredData = {
 
 	<h3>Keeping what you roll</h3>
 	<p>
-		Pin the chords you like and reroll the rest. Copy the chart as plain text,
+		Keep the chords you like and reroll the rest; kept dice stay where they
+		lie while the others are thrown again. If a roll loses something good,
+		undo brings it back. Copy the chart as plain text,
 		copy a link that opens the same progression, or export a MIDI file with the
 		tempo already set. Everything runs in your browser, and your last idea is
 		saved in local storage. See the <a href="/privacy/">privacy page</a> for

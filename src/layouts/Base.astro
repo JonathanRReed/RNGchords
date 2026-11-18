@@ -1,6 +1,6 @@
 ---
-import manropeLatin from "@fontsource-variable/manrope/files/manrope-latin-wght-normal.woff2?url";
-import cormorantLatin from "@fontsource/cormorant-garamond/files/cormorant-garamond-latin-600-normal.woff2?url";
+import franklinLatin from "@fontsource-variable/libre-franklin/files/libre-franklin-latin-wght-normal.woff2?url";
+import besleyLatin from "@fontsource-variable/besley/files/besley-latin-wght-normal.woff2?url";
 import "../styles/fonts.css";
 import "../styles/tokens.css";
 import "../styles/base.css";
@@ -51,8 +51,8 @@ const socialImage = Astro.site
 		<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
 		<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png" />
 		<link rel="manifest" href="/site.webmanifest" />
-		<link rel="preload" as="font" type="font/woff2" href={manropeLatin} crossorigin />
-		<link rel="preload" as="font" type="font/woff2" href={cormorantLatin} crossorigin />
+		<link rel="preload" as="font" type="font/woff2" href={franklinLatin} crossorigin />
+		<link rel="preload" as="font" type="font/woff2" href={besleyLatin} crossorigin />
 		<title>{title}</title>
 		<meta name="description" content={description} />
 		{author ? <meta name="author" content="Jonathan R. Reed" /> : null}

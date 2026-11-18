@@ -84,11 +84,11 @@ export const ADVANCED_PARAMETERS: AdvancedParameter[] = [
 ]
 
 export const ADVANCED_PARAMETER_LABELS: Record<AdvancedParameter, string> = {
-  roots: 'Root path',
-  qualities: 'Quality color',
-  extensions: 'Extension color',
-  inversions: 'Inversion stack',
-  rhythm: 'Rhythm pulse',
+  roots: 'Roots',
+  qualities: 'Quality',
+  extensions: 'Extensions',
+  inversions: 'Inversions',
+  rhythm: 'Rhythm',
 }
 
 export const DEFAULT_GUIDED_FACES = [6, 8, 10, 12]

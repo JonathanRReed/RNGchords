@@ -1,21 +1,6 @@
-import type { AdvancedParameter, ChordDescriptor, ChordQuality, ProgressionResult } from '../lib/music/types'
-
-const DIE_QUALITY_SUFFIX: Record<ChordQuality, string> = {
-  maj: '',
-  min: 'm',
-  dom: '7',
-  dim: 'dim',
-  aug: 'aug',
-  sus2: 'sus2',
-  sus4: 'sus4',
-}
-
-const SOURCE_LABELS: Record<ProgressionResult['source'], string> = {
-  guided: 'Easy roll',
-  advanced: 'Advanced roll',
-  'manual-builder': 'Built by hand',
-  'manual-text': 'Typed in',
-}
+import type { FaceLabel } from '../lib/dice3d/labels'
+import { fromPitchClass, keyUsesFlats, toPitchClass } from '../lib/music/chords'
+import type { AdvancedParameter, ChordDescriptor, ChordQuality, RootNote } from '../lib/music/types'
 
 export function totalBeats(chords: ChordDescriptor[]): number {
   return chords.reduce((sum, chord) => sum + chord.rhythmBeats, 0)
@@ -25,25 +10,64 @@ export function formatDuration(beats: number, tempo: number): string {
   return `${((beats * 60) / tempo).toFixed(1)} sec`
 }
 
-export function formatSource(source: ProgressionResult['source']): string {
-  return SOURCE_LABELS[source]
+/**
+ * A chord name laid out for a die face. Short names sit on one line. Longer
+ * ones split after the root, so `Bbm(maj7)` reads `Bbm` over `(maj7)`.
+ */
+export function dieFace(chord: ChordDescriptor): FaceLabel {
+  if (chord.label.length <= 5) {
+    return { main: chord.label }
+  }
+
+  const rest = chord.label.slice(chord.root.length)
+  const minor = rest.startsWith('m') && !rest.startsWith('maj') ? 'm' : ''
+  return { main: `${chord.root}${minor}`, sub: rest.slice(minor.length) }
 }
 
-/** A short chord name that fits on a die face. */
-export function formatDieChord(chord: ChordDescriptor): string {
-  if (chord.label.length <= 9) {
-    return chord.label
+/** The die face as one line of text, for the flat dice and for screen readers. */
+export function faceText(face: FaceLabel): string {
+  return `${face.main}${face.sub ?? ''}`
+}
+
+const SCALE_STEPS = [0, 2, 4, 5, 7, 9, 11]
+const SCALE_SUFFIXES = ['', 'm', 'm', '', '7', 'm', 'dim', 'maj7', 'm7', 'm7', '6', '9', 'm9', 'sus4']
+
+/**
+ * What the rest of a chord die says: other chords from the same key. Only the
+ * face that lands up is the roll; these are there because a die has more than
+ * one side.
+ */
+export function chordDieOthers(keyCenter: RootNote, sides: number, skip: string): FaceLabel[] {
+  const flats = keyUsesFlats(keyCenter)
+  const start = toPitchClass(keyCenter)
+  const faces: FaceLabel[] = []
+
+  for (let index = 0; faces.length < sides - 1 && index < sides * 2; index += 1) {
+    const root = fromPitchClass(start + SCALE_STEPS[index % SCALE_STEPS.length]!, flats)
+    const main = `${root}${SCALE_SUFFIXES[index % SCALE_SUFFIXES.length]}`
+
+    if (main !== skip) {
+      faces.push(main.length <= 5 ? { main } : { main: root, sub: main.slice(root.length) })
+    }
   }
 
-  const base = `${chord.root}${DIE_QUALITY_SUFFIX[chord.quality]}`
-  const [lead] = chord.extensions
+  return faces
+}
 
-  if (!lead) {
-    return base
-  }
+const PARAMETER_FACES: Record<Exclude<AdvancedParameter, 'roots'>, string[]> = {
+  qualities: ['maj', 'm', 'dom', 'dim', 'aug', 'sus4', 'sus2'],
+  extensions: ['triad', '6', '7', 'maj7', '9', '11', '13', 'b9', '#9', '#11', 'b13', 'add9'],
+  inversions: ['root', '1st', '2nd', '3rd'],
+  rhythm: ['½', '1', '1½', '2', '3', '4'],
+}
 
-  const compact = lead.startsWith('add') ? lead.replace('add', '+') : lead
-  return `${base}${compact}${chord.extensions.length > 1 ? '…' : ''}`
+/** The other faces of an advanced die: the rest of what that die can decide. */
+export function parameterDieOthers(parameter: AdvancedParameter, keyCenter: RootNote, sides: number, skip: string): FaceLabel[] {
+  const flats = keyUsesFlats(keyCenter)
+  const pool =
+    parameter === 'roots' ? SCALE_STEPS.map((step) => fromPitchClass(toPitchClass(keyCenter) + step, flats) as string) : PARAMETER_FACES[parameter]
+  const choices = pool.filter((entry) => entry !== skip)
+  return Array.from({ length: sides - 1 }, (_, index) => ({ main: choices[index % choices.length] ?? '' }))
 }
 
 const QUALITY_FACE: Record<ChordQuality, string> = {
@@ -58,10 +82,6 @@ const QUALITY_FACE: Record<ChordQuality, string> = {
 
 const RUN_LENGTH = 4
 
-function spellAccidentals(token: string): string {
-  return token.replace(/^b/, '♭').replace(/^#/, '♯')
-}
-
 function faceToken(parameter: AdvancedParameter, chord: ChordDescriptor): string {
   switch (parameter) {
     case 'roots':
@@ -69,7 +89,7 @@ function faceToken(parameter: AdvancedParameter, chord: ChordDescriptor): string
     case 'qualities':
       return QUALITY_FACE[chord.quality]
     case 'extensions':
-      return chord.extensions.length > 0 ? chord.extensions.map(spellAccidentals).join('') : 'triad'
+      return chord.extensions.length > 0 ? chord.extensions.join('') : 'triad'
     case 'inversions':
       return chord.inversion > 0 && chord.notes[0] ? `/${chord.notes[0]}` : 'root'
     case 'rhythm':
@@ -85,5 +105,5 @@ function faceToken(parameter: AdvancedParameter, chord: ChordDescriptor): string
 export function formatAdvancedFace(parameter: AdvancedParameter, chords: ChordDescriptor[]): { face: string; run: string } {
   const tokens = chords.slice(0, RUN_LENGTH).map((chord) => faceToken(parameter, chord))
   const run = parameter === 'inversions' ? tokens.map((token) => (token === 'root' ? '–' : token)) : tokens
-  return { face: tokens[0] ?? '', run: run.join(' · ') }
+  return { face: tokens[0] ?? '', run: run.join(' ') }
 }

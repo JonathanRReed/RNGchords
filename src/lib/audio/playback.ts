@@ -1,4 +1,4 @@
-import type { PolySynth } from 'tone'
+import type { Filter, PolySynth, Reverb } from 'tone'
 import type { ChordDescriptor, ProgressionResult } from '../music/types'
 
 export type PlaybackInstrument =
@@ -36,10 +36,9 @@ export const PLAYBACK_INSTRUMENT_COPY: Record<PlaybackInstrument, { label: strin
   },
 }
 
-type SynthOscillator = 'sine' | 'triangle' | 'sawtooth'
-
-const PLAYBACK_INSTRUMENT_SETTINGS: Record<PlaybackInstrument, {
-  oscillator: SynthOscillator
+interface Voice {
+  /** Passed to the synth's oscillator. `fat` types stack detuned copies; `custom` builds a tone from its partials. */
+  oscillator: Record<string, unknown>
   envelope: {
     attack: number
     decay: number
@@ -47,36 +46,62 @@ const PLAYBACK_INSTRUMENT_SETTINGS: Record<PlaybackInstrument, {
     release: number
   }
   volume: number
-}> = {
+  /** Lowpass cutoff in Hz: how bright the voice is allowed to get. */
+  tone: number
+  /** Share of the sound that goes through the room reverb, 0 to 1. */
+  room: number
+  /** Seconds between the notes of a chord, low to high, so it is played rather than switched on. */
+  strum: number
+}
+
+const VOICES: Record<PlaybackInstrument, Voice> = {
   'warm-piano': {
-    oscillator: 'triangle',
-    envelope: { attack: 0.03, decay: 0.18, sustain: 0.24, release: 0.55 },
+    oscillator: { type: 'triangle' },
+    envelope: { attack: 0.02, decay: 0.22, sustain: 0.22, release: 0.7 },
     volume: -9,
+    tone: 3400,
+    room: 0.16,
+    strum: 0.012,
   },
   'electric-piano': {
-    oscillator: 'sine',
-    envelope: { attack: 0.015, decay: 0.14, sustain: 0.2, release: 0.34 },
-    volume: -11,
+    oscillator: { type: 'fatsine', count: 2, spread: 14 },
+    envelope: { attack: 0.012, decay: 0.3, sustain: 0.24, release: 0.6 },
+    volume: -10,
+    tone: 2600,
+    room: 0.2,
+    strum: 0.014,
   },
   'soft-organ': {
-    oscillator: 'triangle',
-    envelope: { attack: 0.05, decay: 0.08, sustain: 0.88, release: 0.18 },
-    volume: -14,
+    oscillator: { type: 'custom', partials: [1, 0.55, 0.3, 0.12] },
+    envelope: { attack: 0.05, decay: 0.08, sustain: 0.88, release: 0.22 },
+    volume: -16,
+    tone: 3000,
+    room: 0.24,
+    strum: 0,
   },
   'bright-piano': {
-    oscillator: 'sawtooth',
-    envelope: { attack: 0.01, decay: 0.11, sustain: 0.14, release: 0.4 },
-    volume: -16,
+    oscillator: { type: 'sawtooth' },
+    envelope: { attack: 0.008, decay: 0.16, sustain: 0.14, release: 0.5 },
+    volume: -17,
+    tone: 5200,
+    room: 0.14,
+    strum: 0.01,
   },
   'glass-bells': {
-    oscillator: 'sine',
-    envelope: { attack: 0.004, decay: 0.26, sustain: 0.04, release: 1.05 },
-    volume: -15,
+    oscillator: { type: 'sine' },
+    envelope: { attack: 0.004, decay: 0.3, sustain: 0.04, release: 1.4 },
+    volume: -14,
+    tone: 9000,
+    room: 0.42,
+    strum: 0.03,
   },
   'mellow-pad': {
-    oscillator: 'triangle',
-    envelope: { attack: 0.16, decay: 0.32, sustain: 0.72, release: 1.28 },
-    volume: -18,
+    oscillator: { type: 'fatsawtooth', count: 3, spread: 22 },
+    envelope: { attack: 0.2, decay: 0.4, sustain: 0.7, release: 1.5 },
+    volume: -22,
+    tone: 1500,
+    room: 0.45,
+    strum: 0,
   },
 }
 
@@ -93,6 +118,8 @@ class PlaybackEngine {
   private tone: ToneModule | null = null
   private tonePromise: Promise<ToneModule> | null = null
   private synth: PolySynth | null = null
+  private filter: Filter | null = null
+  private reverb: Reverb | null = null
   private instrument: PlaybackInstrument | null = null
   private initialized = false
 
@@ -136,18 +163,42 @@ class PlaybackEngine {
       return
     }
 
+    const voice = VOICES[instrument]
+
+    // One signal path for every voice: synth, tone filter, a small room, then a limiter so stacked chords never clip.
+    if (!this.filter || !this.reverb) {
+      const limiter = new tone.Limiter(-1.5).toDestination()
+      this.reverb = new tone.Reverb({ decay: 2.4, preDelay: 0.015 }).connect(limiter)
+      this.filter = new tone.Filter({ type: 'lowpass', frequency: voice.tone, Q: 0.4 }).connect(this.reverb)
+    }
+
+    this.filter.frequency.value = voice.tone
+    this.reverb.wet.value = voice.room
+
     this.synth?.dispose()
-    const settings = PLAYBACK_INSTRUMENT_SETTINGS[instrument]
     const synth = new tone.PolySynth(tone.Synth, {
-      oscillator: {
-        type: settings.oscillator,
-      },
-      envelope: settings.envelope,
-    }).toDestination()
-    synth.volume.value = settings.volume
+      oscillator: voice.oscillator as never,
+      envelope: voice.envelope,
+    }).connect(this.filter)
+    synth.maxPolyphony = 48
+    synth.volume.value = voice.volume
 
     this.synth = synth
     this.instrument = instrument
+  }
+
+  /** Sounds a chord from the bottom up, each note a touch softer than the last. */
+  private strike(tone: ToneModule, chord: ChordDescriptor, seconds: number, time: number, velocity: number): void {
+    const voice = this.instrument ? VOICES[this.instrument] : null
+
+    chord.midi.forEach((value, index) => {
+      this.synth?.triggerAttackRelease(
+        tone.Frequency(value, 'midi').toNote(),
+        seconds,
+        time + index * (voice?.strum ?? 0),
+        velocity * (1 - index * 0.035),
+      )
+    })
   }
 
   async play(progression: ProgressionResult, tempo: number, options: PlayOptions): Promise<number> {
@@ -173,11 +224,10 @@ class PlaybackEngine {
       const attackTime = cursor
 
       transport.scheduleOnce((time) => {
-        const noteNames = chord.midi.map((value) => tone.Frequency(value, 'midi').toNote())
         draw.schedule(() => {
           options.onChordStart?.(index)
         }, time)
-        this.synth?.triggerAttackRelease(noteNames, Math.max(0.12, durationSeconds * 0.82), time, 0.52)
+        this.strike(tone, chord, Math.max(0.12, durationSeconds * 0.82), time, 0.52)
       }, attackTime)
 
       cursor += durationSeconds
@@ -207,9 +257,8 @@ class PlaybackEngine {
       return
     }
 
-    const noteNames = chord.midi.map((value) => tone.Frequency(value, 'midi').toNote())
     this.synth.releaseAll()
-    this.synth.triggerAttackRelease(noteNames, Math.max(0.18, chord.rhythmBeats * 0.42), undefined, 0.5)
+    this.strike(tone, chord, Math.max(0.3, chord.rhythmBeats * 0.5), tone.now() + 0.01, 0.5)
   }
 
   stop(): void {

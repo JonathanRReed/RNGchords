@@ -36,11 +36,12 @@ const dateText = new Date(`${date}T12:00:00Z`).toLocaleDateString("en-US", {
 				<span translate="no">RNG Chords</span>
 			</a>
 			<nav class="topbar__nav" aria-label="Site">
+				<a href="/">Generator</a>
 				<a href="/about/">About</a>
 			</nav>
 		</header>
 		<main id="main-content" class="info">
-			<article class="prose panel">
+			<article class="prose">
 				<h1>{heading}</h1>
 				<slot />
 				<p class="prose__date">{dateLabel} <time datetime={date}>{dateText}</time>.</p>
